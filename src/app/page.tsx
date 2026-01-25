@@ -88,7 +88,7 @@ export default function Home() {
                   <Shield className="h-8 w-8 text-green-600" />
                   <div>
                     <h3 className="font-semibold">Regulatory Mapping</h3>
-                    <p className="text-sm text-slate-600">Auto-map to GRI, SASB, BRSR standards</p>
+                    <p className="text-sm text-slate-600">Auto-map to GRI, SASB, IFRS, BRSR standards</p>
                   </div>
                 </div>
               </Card>
@@ -221,7 +221,7 @@ export default function Home() {
               <Globe className="h-12 w-12 mx-auto mb-4 text-green-600" />
               <h3 className="text-xl font-semibold mb-2">Global Standards Support</h3>
               <p className="text-slate-600">
-                Comprehensive coverage of GRI, SASB, BRSR, CSRD, and other jurisdictional standards
+                Comprehensive coverage of GRI, SASB, IFRS, BRSR, CSRD, and other jurisdictional standards
               </p>
             </Card>
             <Card className="text-center p-6">

@@ -26,7 +26,15 @@ import {
   AlertTriangle,
   Loader2,
   Eye,
-  Download
+  Download,
+  Shield,
+  Plus,
+  Globe,
+  TreePine,
+  Users,
+  Building2,
+  TrendingUp,
+  Clock
 } from "lucide-react"
 import Link from "next/link"
 
@@ -203,12 +211,14 @@ export default function ProjectWorkspace() {
         </div>
 
         <Tabs defaultValue="scope" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-11">
             <TabsTrigger value="scope">Scope Definition</TabsTrigger>
             <TabsTrigger value="mapping">Standards Mapping</TabsTrigger>
             <TabsTrigger value="materiality">Materiality Analysis</TabsTrigger>
             <TabsTrigger value="tcfd">TCFD</TabsTrigger>
             <TabsTrigger value="csrd">CSRD</TabsTrigger>
+            <TabsTrigger value="gri">GRI</TabsTrigger>
+            <TabsTrigger value="ifrs">IFRS</TabsTrigger>
             <TabsTrigger value="data">Data Collection</TabsTrigger>
             <TabsTrigger value="workflows">Workflows</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -1311,6 +1321,237 @@ export default function ProjectWorkspace() {
             </div>
           </TabsContent>
 
+          {/* IFRS Standards Tab */}
+          <TabsContent value="ifrs" className="space-y-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Building2 className="h-5 w-5" />
+                    <span>IFRS Sustainability Standards</span>
+                  </CardTitle>
+                  <CardDescription>
+                    International Financial Reporting Standards sustainability disclosure requirements
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* IFRS Standards Overview */}
+                    <div>
+                      <h4 className="font-semibold mb-4 flex items-center">
+                        <Target className="h-4 w-4 mr-2" />
+                        IFRS Standards Coverage
+                      </h4>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-sm">IFRS S1</span>
+                            <Badge className="bg-green-100 text-green-800 text-xs">Ready</Badge>
+                          </div>
+                          <div className="text-xs text-slate-600 mb-2">General Requirements</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-green-500 h-2 rounded-full" style={{width: '85%'}}></div>
+                          </div>
+                        </Card>
+                        
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-sm">IFRS S2</span>
+                            <Badge className="bg-green-100 text-green-800 text-xs">Ready</Badge>
+                          </div>
+                          <div className="text-xs text-slate-600 mb-2">Climate Disclosures</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-green-500 h-2 rounded-full" style={{width: '80%'}}></div>
+                          </div>
+                        </Card>
+                        
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-sm">IFRS S3-S7</span>
+                            <Badge className="bg-yellow-100 text-yellow-800 text-xs">Proposed</Badge>
+                          </div>
+                          <div className="text-xs text-slate-600 mb-2">Emerging Standards</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-yellow-500 h-2 rounded-full" style={{width: '30%'}}></div>
+                          </div>
+                        </Card>
+                        
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-sm">Readiness</span>
+                            <Badge className="bg-blue-100 text-blue-800 text-xs">72%</Badge>
+                          </div>
+                          <div className="text-xs text-slate-600 mb-2">Implementation Ready</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-blue-500 h-2 rounded-full" style={{width: '72%'}}></div>
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+
+                    {/* IFRS Standards Details */}
+                    <div>
+                      <h4 className="font-semibold mb-4 flex items-center">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Standards Implementation Status
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                              <span className="font-medium">IFRS S1: General Requirements</span>
+                            </div>
+                            <Badge className="bg-green-100 text-green-800">85% Complete</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">Governance, strategy, risk management, and metrics for sustainability disclosures</div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>✓ Governance oversight</div>
+                            <div>✓ Risk management</div>
+                            <div>✓ Strategy integration</div>
+                            <div>⚠ Metrics framework</div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                              <span className="font-medium">IFRS S2: Climate-related Disclosures</span>
+                            </div>
+                            <Badge className="bg-green-100 text-green-800">80% Complete</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">Climate risks, opportunities, governance, and GHG emissions reporting</div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>✓ Climate risk assessment</div>
+                            <div>✓ Scope 1 & 2 emissions</div>
+                            <div>✓ Climate governance</div>
+                            <div>⚠ Scope 3 emissions</div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
+                              <span className="font-medium">IFRS S3-S7: Proposed Standards</span>
+                            </div>
+                            <Badge className="bg-yellow-100 text-yellow-800">30% Ready</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">Nature, human rights, resources, and circular economy disclosures</div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>⚠ IFRS S3: Nature-related</div>
+                            <div>⚠ IFRS S4: Human Rights</div>
+                            <div>⚠ IFRS S5: Human Resources</div>
+                            <div>⚠ IFRS S6: Resources</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-2">
+                      <Button className="flex-1">
+                        <Target className="h-4 w-4 mr-2" />
+                        Run IFRS Assessment
+                      </Button>
+                      <Button variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export IFRS Report
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* IFRS Sidebar */}
+              <div className="space-y-6">
+                {/* Overall IFRS Readiness */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">IFRS Readiness</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center">
+                      <div className="text-4xl font-bold text-blue-600 mb-2">72%</div>
+                      <div className="text-sm text-slate-600 mb-4">Implementation Ready</div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>IFRS S1:</span>
+                          <span className="font-medium">85%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>IFRS S2:</span>
+                          <span className="font-medium">80%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>IFRS S3-S7:</span>
+                          <span className="font-medium">30%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* IFRS Timeline */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Clock className="h-4 w-4 mr-2" />
+                      Implementation Timeline
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="font-medium text-sm text-green-800 mb-1">Immediate</div>
+                        <div className="text-xs text-green-700">Complete IFRS S1 governance</div>
+                      </div>
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="font-medium text-sm text-yellow-800 mb-1">Short-term</div>
+                        <div className="text-xs text-yellow-700">Enhance climate disclosures</div>
+                      </div>
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="font-medium text-sm text-blue-800 mb-1">Long-term</div>
+                        <div className="text-xs text-blue-700">Prepare for IFRS S3-S7</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Key IFRS Requirements */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Key Requirements
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Sustainability governance</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Climate risk assessment</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <span className="text-sm">GHG emissions reporting</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <span className="text-sm">Stakeholder engagement</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
           {/* Data Collection Tab */}
           <TabsContent value="data" className="space-y-6">
             <div className="grid lg:grid-cols-3 gap-6">
@@ -1616,6 +1857,208 @@ export default function ProjectWorkspace() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+
+          {/* GRI Tab */}
+          <TabsContent value="gri" className="space-y-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Globe className="h-5 w-5" />
+                    <span>GRI Standards Assessment</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Global Reporting Initiative Standards compliance and readiness assessment
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Universal Standards */}
+                    <div>
+                      <h4 className="font-semibold mb-4 flex items-center">
+                        <Building2 className="h-4 w-4 mr-2" />
+                        Universal Standards (GRI 1, 2, 3)
+                      </h4>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">GRI 1: Foundation</span>
+                            <Badge className="bg-yellow-100 text-yellow-800">65%</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">Statement of use and organizational profile</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-yellow-500 h-2 rounded-full" style={{width: '65%'}}></div>
+                          </div>
+                        </Card>
+                        
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">GRI 2: General Disclosures</span>
+                            <Badge className="bg-yellow-100 text-yellow-800">70%</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">Organizational information and governance</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-yellow-500 h-2 rounded-full" style={{width: '70%'}}></div>
+                          </div>
+                        </Card>
+                        
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">GRI 3: Material Topics</span>
+                            <Badge className="bg-red-100 text-red-800">55%</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">Material topics and their management</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-red-500 h-2 rounded-full" style={{width: '55%'}}></div>
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+
+                    {/* Topic Standards */}
+                    <div>
+                      <h4 className="font-semibold mb-4 flex items-center">
+                        <TreePine className="h-4 w-4 mr-2" />
+                        Topic Standards Coverage
+                      </h4>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">Economic</span>
+                            <Badge className="bg-yellow-100 text-yellow-800">60%</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">GRI 201-207 (4/7 covered)</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-yellow-500 h-2 rounded-full" style={{width: '60%'}}></div>
+                          </div>
+                        </Card>
+                        
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">Environmental</span>
+                            <Badge className="bg-green-100 text-green-800">65%</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">GRI 301-308 (5/8 covered)</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-green-500 h-2 rounded-full" style={{width: '65%'}}></div>
+                          </div>
+                        </Card>
+                        
+                        <Card className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">Social</span>
+                            <Badge className="bg-yellow-100 text-yellow-800">55%</Badge>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">GRI 401-420 (11/20 covered)</div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div className="bg-yellow-500 h-2 rounded-full" style={{width: '55%'}}></div>
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-2">
+                      <Button className="flex-1">
+                        <Target className="h-4 w-4 mr-2" />
+                        Run GRI Assessment
+                      </Button>
+                      <Button variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export Report
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* GRI Sidebar */}
+              <div className="space-y-6">
+                {/* Overall Score */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Overall GRI Readiness</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center">
+                      <div className="text-4xl font-bold text-yellow-600 mb-2">62%</div>
+                      <div className="text-sm text-slate-600 mb-4">Moderate Readiness</div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Universal Standards:</span>
+                          <span className="font-medium">63%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Topic Standards:</span>
+                          <span className="font-medium">60%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Sector Standards:</span>
+                          <span className="font-medium">N/A</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Reporting Principles */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Reporting Principles
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Stakeholder Inclusiveness</span>
+                        <Badge className="bg-yellow-100 text-yellow-800 text-xs">65%</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Materiality</span>
+                        <Badge className="bg-red-100 text-red-800 text-xs">55%</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Completeness</span>
+                        <Badge className="bg-yellow-100 text-yellow-800 text-xs">60%</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Accuracy</span>
+                        <Badge className="bg-green-100 text-green-800 text-xs">70%</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Key Recommendations */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Lightbulb className="h-4 w-4 mr-2" />
+                      Key Recommendations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="font-medium text-sm text-red-800 mb-1">Critical</div>
+                        <div className="text-xs text-red-700">Establish formal materiality assessment process</div>
+                      </div>
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="font-medium text-sm text-yellow-800 mb-1">Major</div>
+                        <div className="text-xs text-yellow-700">Enhance stakeholder engagement framework</div>
+                      </div>
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="font-medium text-sm text-blue-800 mb-1">Minor</div>
+                        <div className="text-xs text-blue-700">Improve documentation practices</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 

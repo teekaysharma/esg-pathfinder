@@ -44,6 +44,100 @@ const issbAssessmentSchema = z.object({
       baselines: z.any()
     })
   }).optional(),
+  ifrsS3: z.object({
+    natureDependencies: z.array(z.object({
+      type: z.string(),
+      description: z.string(),
+      impact: z.enum(["LOW", "MEDIUM", "HIGH"]),
+      timeframe: z.enum(["SHORT", "MEDIUM", "LONG"]),
+      mitigation: z.string()
+    })),
+    ecosystemServices: z.object({
+      assessment: z.string(),
+      valuation: z.any(),
+      impact: z.string()
+    }),
+    biodiversity: z.object({
+      metrics: z.any(),
+      targets: z.any(),
+      protection: z.string()
+    })
+  }).optional(),
+  ifrsS4: z.object({
+    humanRights: z.object({
+      policy: z.string(),
+      dueDiligence: z.string(),
+      governance: z.any(),
+      reporting: z.string()
+    }),
+    socialPerformance: z.object({
+      workplace: z.any(),
+      community: z.any(),
+      supplyChain: z.any(),
+      customers: z.any()
+    }),
+    stakeholderEngagement: z.object({
+      process: z.string(),
+      outcomes: z.any(),
+      feedback: z.string()
+    })
+  }).optional(),
+  ifrsS5: z.object({
+    workforceManagement: z.object({
+      composition: z.any(),
+      development: z.any(),
+      compensation: z.any(),
+      wellbeing: z.any()
+    }),
+    laborRelations: z.object({
+      collectiveBargaining: z.string(),
+      healthSafety: z.any(),
+      workLifeBalance: z.string()
+    }),
+      diversityInclusion: z.object({
+      metrics: z.any(),
+      policies: z.string(),
+      initiatives: z.any()
+    })
+  }).optional(),
+  ifrsS6: z.object({
+    pollutionManagement: z.object({
+      airQuality: z.any(),
+      waterQuality: z.any(),
+      soilQuality: z.any(),
+      wasteManagement: z.any()
+    }),
+    resourceUse: z.object({
+      materials: z.any(),
+      water: z.any(),
+      energy: z.any(),
+      circularity: z.any()
+    }),
+    environmentalCompliance: z.object({
+      permits: z.any(),
+      violations: z.any(),
+      remediation: z.string()
+    })
+  }).optional(),
+  ifrsS7: z.object({
+    circularStrategy: z.object({
+      vision: z.string(),
+      targets: z.any(),
+      governance: z.any()
+    }),
+    resourceEfficiency: z.object({
+      design: z.any(),
+      production: z.any(),
+      consumption: z.any(),
+      endOfLife: z.any()
+    }),
+    valueRetention: z.object({
+      reuse: z.any(),
+      repair: z.any(),
+      remanufacturing: z.any(),
+      recycling: z.any()
+    })
+  }).optional(),
   sustainability: z.object({
     governance: z.any(),
     strategy: z.any(),
@@ -69,10 +163,20 @@ interface ISSBAssessmentResponse {
   projectId: string
   ifrsS1: any
   ifrsS2: any
+  ifrsS3?: any
+  ifrsS4?: any
+  ifrsS5?: any
+  ifrsS6?: any
+  ifrsS7?: any
   sustainability: any
   climate: any
+  nature?: any
+  humanRights?: any
+  resources?: any
+  circularEconomy?: any
   overallScore: number
   recommendations: string[]
+  readiness?: any
   createdAt: string
   updatedAt: string
 }
@@ -123,19 +227,75 @@ export async function POST(
       update: {
         ifrsS1: assessmentData?.ifrsS1 || {},
         ifrsS2: assessmentData?.ifrsS2 || {},
+        ifrsS3: assessmentData?.ifrsS3 || {},
+        ifrsS4: assessmentData?.ifrsS4 || {},
+        ifrsS5: assessmentData?.ifrsS5 || {},
+        ifrsS6: assessmentData?.ifrsS6 || {},
+        ifrsS7: assessmentData?.ifrsS7 || {},
         sustainability: assessmentData?.sustainability || {},
         climate: assessmentData?.climate || {},
+        nature: assessmentData?.ifrsS3 ? {
+          dependencies: assessmentData.ifrsS3.natureDependencies || [],
+          ecosystemServices: assessmentData.ifrsS3.ecosystemServices || {},
+          biodiversity: assessmentData.ifrsS3.biodiversity || {}
+        } : {},
+        humanRights: assessmentData?.ifrsS4 ? {
+          policy: assessmentData.ifrsS4.humanRights?.policy || "",
+          dueDiligence: assessmentData.ifrsS4.humanRights?.dueDiligence || "",
+          governance: assessmentData.ifrsS4.humanRights?.governance || {},
+          socialPerformance: assessmentData.ifrsS4?.socialPerformance || {},
+          stakeholderEngagement: assessmentData.ifrsS4?.stakeholderEngagement || {}
+        } : {},
+        resources: assessmentData?.ifrsS6 ? {
+          pollutionManagement: assessmentData.ifrsS6.pollutionManagement || {},
+          resourceUse: assessmentData.ifrsS6.resourceUse || {},
+          environmentalCompliance: assessmentData.ifrsS6.environmentalCompliance || {}
+        } : {},
+        circularEconomy: assessmentData?.ifrsS7 ? {
+          strategy: assessmentData.ifrsS7.circularStrategy || {},
+          resourceEfficiency: assessmentData.ifrsS7.resourceEfficiency || {},
+          valueRetention: assessmentData.ifrsS7.valueRetention || {}
+        } : {},
         overallScore,
-        recommendations
+        recommendations,
+        readiness: await calculateIFRSReadiness(assessmentData, project)
       },
       create: {
         projectId,
         ifrsS1: assessmentData?.ifrsS1 || {},
         ifrsS2: assessmentData?.ifrsS2 || {},
+        ifrsS3: assessmentData?.ifrsS3 || {},
+        ifrsS4: assessmentData?.ifrsS4 || {},
+        ifrsS5: assessmentData?.ifrsS5 || {},
+        ifrsS6: assessmentData?.ifrsS6 || {},
+        ifrsS7: assessmentData?.ifrsS7 || {},
         sustainability: assessmentData?.sustainability || {},
         climate: assessmentData?.climate || {},
+        nature: assessmentData?.ifrsS3 ? {
+          dependencies: assessmentData.ifrsS3.natureDependencies || [],
+          ecosystemServices: assessmentData.ifrsS3.ecosystemServices || {},
+          biodiversity: assessmentData.ifrsS3.biodiversity || {}
+        } : {},
+        humanRights: assessmentData?.ifrsS4 ? {
+          policy: assessmentData.ifrsS4.humanRights?.policy || "",
+          dueDiligence: assessmentData.ifrsS4.humanRights?.dueDiligence || "",
+          governance: assessmentData.ifrsS4.humanRights?.governance || {},
+          socialPerformance: assessmentData.ifrsS4?.socialPerformance || {},
+          stakeholderEngagement: assessmentData.ifrsS4?.stakeholderEngagement || {}
+        } : {},
+        resources: assessmentData?.ifrsS6 ? {
+          pollutionManagement: assessmentData.ifrsS6.pollutionManagement || {},
+          resourceUse: assessmentData.ifrsS6.resourceUse || {},
+          environmentalCompliance: assessmentData.ifrsS6.environmentalCompliance || {}
+        } : {},
+        circularEconomy: assessmentData?.ifrsS7 ? {
+          strategy: assessmentData.ifrsS7.circularStrategy || {},
+          resourceEfficiency: assessmentData.ifrsS7.resourceEfficiency || {},
+          valueRetention: assessmentData.ifrsS7.valueRetention || {}
+        } : {},
         overallScore,
-        recommendations
+        recommendations,
+        readiness: await calculateIFRSReadiness(assessmentData, project)
       }
     })
 
@@ -160,10 +320,20 @@ export async function POST(
       projectId: issbAssessment.projectId,
       ifrsS1: issbAssessment.ifrsS1,
       ifrsS2: issbAssessment.ifrsS2,
+      ifrsS3: issbAssessment.ifrsS3,
+      ifrsS4: issbAssessment.ifrsS4,
+      ifrsS5: issbAssessment.ifrsS5,
+      ifrsS6: issbAssessment.ifrsS6,
+      ifrsS7: issbAssessment.ifrsS7,
       sustainability: issbAssessment.sustainability,
       climate: issbAssessment.climate,
+      nature: issbAssessment.nature,
+      humanRights: issbAssessment.humanRights,
+      resources: issbAssessment.resources,
+      circularEconomy: issbAssessment.circularEconomy,
       overallScore: issbAssessment.overallScore || 0,
       recommendations: issbAssessment.recommendations || [],
+      readiness: issbAssessment.readiness,
       createdAt: issbAssessment.createdAt.toISOString(),
       updatedAt: issbAssessment.updatedAt.toISOString()
     }
@@ -227,10 +397,20 @@ export async function GET(
       projectId: issbAssessment.projectId,
       ifrsS1: issbAssessment.ifrsS1,
       ifrsS2: issbAssessment.ifrsS2,
+      ifrsS3: issbAssessment.ifrsS3,
+      ifrsS4: issbAssessment.ifrsS4,
+      ifrsS5: issbAssessment.ifrsS5,
+      ifrsS6: issbAssessment.ifrsS6,
+      ifrsS7: issbAssessment.ifrsS7,
       sustainability: issbAssessment.sustainability,
       climate: issbAssessment.climate,
+      nature: issbAssessment.nature,
+      humanRights: issbAssessment.humanRights,
+      resources: issbAssessment.resources,
+      circularEconomy: issbAssessment.circularEconomy,
       overallScore: issbAssessment.overallScore || 0,
       recommendations: issbAssessment.recommendations || [],
+      readiness: issbAssessment.readiness,
       createdAt: issbAssessment.createdAt.toISOString(),
       updatedAt: issbAssessment.updatedAt.toISOString()
     }
@@ -528,4 +708,138 @@ function createFallbackISSBAssessment(sector: string): any {
       performance: "Climate performance tracking needs to be implemented"
     }
   }
+}
+
+async function calculateIFRSReadiness(assessmentData: any, project: any): Promise<any> {
+  const readiness = {
+    overall: 0,
+    standards: {
+      ifrsS1: { score: 0, status: 'NOT_STARTED' as const, gaps: [] as string[] },
+      ifrsS2: { score: 0, status: 'NOT_STARTED' as const, gaps: [] as string[] },
+      ifrsS3: { score: 0, status: 'NOT_STARTED' as const, gaps: [] as string[] },
+      ifrsS4: { score: 0, status: 'NOT_STARTED' as const, gaps: [] as string[] },
+      ifrsS5: { score: 0, status: 'NOT_STARTED' as const, gaps: [] as string[] },
+      ifrsS6: { score: 0, status: 'NOT_STARTED' as const, gaps: [] as string[] },
+      ifrsS7: { score: 0, status: 'NOT_STARTED' as const, gaps: [] as string[] }
+    },
+    timeline: {
+      immediate: [] as string[],
+      shortTerm: [] as string[],
+      longTerm: [] as string[]
+    },
+    resources: {
+      team: 'NOT_ESTABLISHED',
+      budget: 'NOT_ALLOCATED',
+      technology: 'NOT_IMPLEMENTED',
+      training: 'NOT_PLANNED'
+    }
+  }
+
+  // IFRS S1 Readiness
+  if (assessmentData?.ifrsS1) {
+    let s1Score = 0
+    const s1Gaps = []
+    
+    if (assessmentData.ifrsS1.generalRequirements?.governance) {
+      s1Score += 25
+    } else {
+      s1Gaps.push('Governance oversight for sustainability disclosures')
+    }
+    
+    if (assessmentData.ifrsS1.generalRequirements?.strategy) {
+      s1Score += 25
+    } else {
+      s1Gaps.push('Sustainability strategy integration')
+    }
+    
+    if (assessmentData.ifrsS1.generalRequirements?.riskManagement) {
+      s1Score += 25
+    } else {
+      s1Gaps.push('Sustainability risk management framework')
+    }
+    
+    if (assessmentData.ifrsS1.generalRequirements?.metricsTargets) {
+      s1Score += 25
+    } else {
+      s1Gaps.push('Sustainability metrics and targets')
+    }
+    
+    readiness.standards.ifrsS1.score = s1Score
+    readiness.standards.ifrsS1.gaps = s1Gaps
+    readiness.standards.ifrsS1.status = s1Score >= 75 ? 'READY' : s1Score >= 50 ? 'IN_PROGRESS' : 'NOT_STARTED'
+  } else {
+    readiness.standards.ifrsS1.gaps = ['Complete IFRS S1 implementation required']
+    readiness.timeline.immediate.push('Establish IFRS S1 governance and processes')
+  }
+
+  // IFRS S2 Readiness
+  if (assessmentData?.ifrsS2) {
+    let s2Score = 0
+    const s2Gaps = []
+    
+    if (assessmentData.ifrsS2.climateRelatedRisks?.length > 0) {
+      s2Score += 30
+    } else {
+      s2Gaps.push('Climate risk assessment')
+    }
+    
+    if (assessmentData.ifrsS2.climateOpportunities?.length > 0) {
+      s2Score += 20
+    } else {
+      s2Gaps.push('Climate opportunity identification')
+    }
+    
+    if (assessmentData.ifrsS2.resilience?.analysis) {
+      s2Score += 25
+    } else {
+      s2Gaps.push('Climate resilience analysis')
+    }
+    
+    if (assessmentData.ifrsS2.metrics?.ghgEmissions) {
+      s2Score += 25
+    } else {
+      s2Gaps.push('GHG emissions measurement and reporting')
+    }
+    
+    readiness.standards.ifrsS2.score = s2Score
+    readiness.standards.ifrsS2.gaps = s2Gaps
+    readiness.standards.ifrsS2.status = s2Score >= 75 ? 'READY' : s2Score >= 50 ? 'IN_PROGRESS' : 'NOT_STARTED'
+  } else {
+    readiness.standards.ifrsS2.gaps = ['Complete IFRS S2 implementation required']
+    readiness.timeline.immediate.push('Implement climate risk and opportunity assessment')
+  }
+
+  // IFRS S3-S7 Readiness (Proposed Standards)
+  const proposedStandards = [
+    { key: 'ifrsS3', name: 'Nature-related Risks' },
+    { key: 'ifrsS4', name: 'Human Rights and Social' },
+    { key: 'ifrsS5', name: 'Human Resource Management' },
+    { key: 'ifrsS6', name: 'Pollution and Resources' },
+    { key: 'ifrsS7', name: 'Circular Economy' }
+  ]
+
+  proposedStandards.forEach(standard => {
+    if (assessmentData?.[standard.key]) {
+      readiness.standards[standard.key as keyof typeof readiness.standards].score = 25
+      readiness.standards[standard.key as keyof typeof readiness.standards].status = 'IN_PROGRESS'
+      readiness.standards[standard.key as keyof typeof readiness.standards].gaps = [`${standard.name} framework partially implemented`]
+      readiness.timeline.longTerm.push(`Complete ${standard.name} implementation`)
+    } else {
+      readiness.standards[standard.key as keyof typeof readiness.standards].gaps = [`${standard.name} assessment not started`]
+      readiness.timeline.longTerm.push(`Prepare for ${standard.name} implementation`)
+    }
+  })
+
+  // Calculate overall readiness
+  const scores = Object.values(readiness.standards).map(s => s.score)
+  readiness.overall = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+
+  // Resource assessment
+  const sector = project.organisation.sector?.toLowerCase() || ''
+  if (sector.includes('energy') || sector.includes('utilities')) {
+    readiness.resources.team = 'PARTIAL'
+    readiness.timeline.shortTerm.push('Expand ESG team for climate focus')
+  }
+
+  return readiness
 }

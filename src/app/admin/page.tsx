@@ -35,7 +35,11 @@ import {
   FileText,
   UserPlus,
   Key,
-  LogOut
+  LogOut,
+  TrendingUp,
+  Target,
+  TreePine,
+  Building2
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
@@ -170,6 +174,8 @@ export default function AdminDashboard() {
   const { user, token } = useAuth()
   const [users, setUsers] = useState(mockUsers)
   const [auditLogs, setAuditLogs] = useState(mockAuditLogs)
+  const [systemStats, setSystemStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false)
   const [newUser, setNewUser] = useState({
@@ -178,6 +184,29 @@ export default function AdminDashboard() {
     role: "VIEWER" as UserRole,
     organisation: ""
   })
+
+  // Fetch system stats on component mount
+  React.useEffect(() => {
+    fetchSystemStats()
+  }, [])
+
+  const fetchSystemStats = async () => {
+    try {
+      const response = await fetch('/api/v1/admin/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSystemStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Error fetching system stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -283,8 +312,9 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="esg-analytics">ESG Analytics</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="audit">Audit Logs</TabsTrigger>
             <TabsTrigger value="settings">System Settings</TabsTrigger>
@@ -299,8 +329,8 @@ export default function AdminDashboard() {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockSystemStats.totalUsers}</div>
-                  <p className="text-xs text-muted-foreground">{mockSystemStats.activeUsers} active</p>
+                  <div className="text-2xl font-bold">{loading ? '...' : systemStats?.totalUsers || 0}</div>
+                  <p className="text-xs text-muted-foreground">{loading ? '...' : systemStats?.activeUsers || 0} active</p>
                 </CardContent>
               </Card>
               <Card>
@@ -309,34 +339,101 @@ export default function AdminDashboard() {
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockSystemStats.activeProjects}</div>
-                  <p className="text-xs text-muted-foreground">of {mockSystemStats.totalProjects} total</p>
+                  <div className="text-2xl font-bold">{loading ? '...' : systemStats?.activeProjects || 0}</div>
+                  <p className="text-xs text-muted-foreground">of {loading ? '...' : systemStats?.totalProjects || 0} total</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Reports Generated</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">ESG Assessments</CardTitle>
+                  <Target className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockSystemStats.totalReports}</div>
-                  <p className="text-xs text-muted-foreground">This month</p>
+                  <div className="text-2xl font-bold">{loading ? '...' : systemStats?.esgAssessments?.total || 0}</div>
+                  <p className="text-xs text-muted-foreground">All frameworks</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">System Uptime</CardTitle>
-                  <Server className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Data Points</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{mockSystemStats.systemUptime}</div>
-                  <p className="text-xs text-muted-foreground">Last 30 days</p>
+                  <div className="text-2xl font-bold">{loading ? '...' : systemStats?.dataPoints?.total || 0}</div>
+                  <p className="text-xs text-muted-foreground">ESG metrics collected</p>
                 </CardContent>
               </Card>
             </div>
 
+            {/* ESG Framework Overview */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">ESG Framework Usage</h3>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Target className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <span className="font-medium">TCFD</span>
+                    </div>
+                    <div className="text-2xl font-bold">{loading ? '...' : systemStats?.esgAssessments?.tcfd || 0}</div>
+                    <p className="text-xs text-muted-foreground">Assessments</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <TreePine className="h-4 w-4 text-green-600" />
+                      </div>
+                      <span className="font-medium">CSRD</span>
+                    </div>
+                    <div className="text-2xl font-bold">{loading ? '...' : systemStats?.esgAssessments?.csrd || 0}</div>
+                    <p className="text-xs text-muted-foreground">Assessments</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Globe className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <span className="font-medium">GRI</span>
+                    </div>
+                    <div className="text-2xl font-bold">{loading ? '...' : systemStats?.esgAssessments?.gri || 0}</div>
+                    <p className="text-xs text-muted-foreground">Assessments</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center">
+                        <Building2 className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <span className="font-medium">ISSB</span>
+                    </div>
+                    <div className="text-2xl font-bold">{loading ? '...' : systemStats?.esgAssessments?.issb || 0}</div>
+                    <p className="text-xs text-muted-foreground">Assessments</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center">
+                        <BarChart3 className="h-4 w-4 text-red-600" />
+                      </div>
+                      <span className="font-medium">SASB</span>
+                    </div>
+                    <div className="text-2xl font-bold">{loading ? '...' : systemStats?.esgAssessments?.sasb || 0}</div>
+                    <p className="text-xs text-muted-foreground">Assessments</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
             {/* System Information */}
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid lg:grid-cols-3 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
@@ -347,11 +444,13 @@ export default function AdminDashboard() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Database Size</span>
-                    <span className="text-sm text-slate-600">{mockSystemStats.databaseSize}</span>
+                    <span className="text-sm text-slate-600">{loading ? '...' : systemStats?.databaseSize || 'Unknown'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Last Backup</span>
-                    <span className="text-sm text-slate-600">{formatDate(mockSystemStats.lastBackup)}</span>
+                    <span className="text-sm text-slate-600">
+                      {loading ? '...' : systemStats?.lastBackup ? formatDate(systemStats.lastBackup) : 'Unknown'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Backup Status</span>
@@ -394,7 +493,224 @@ export default function AdminDashboard() {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="h-5 w-5" />
+                    <span>Data Points by Category</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {loading ? (
+                    <div className="text-sm text-slate-600">Loading...</div>
+                  ) : systemStats?.dataPoints?.byCategory ? (
+                    Object.entries(systemStats.dataPoints.byCategory).map(([category, count]) => (
+                      <div key={category} className="flex justify-between items-center">
+                        <span className="text-sm font-medium capitalize">{category.toLowerCase()}</span>
+                        <Badge variant="outline">{count as number}</Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-slate-600">No data available</div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
+
+            {/* Recent Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-5 w-5" />
+                  <span>Recent System Activity</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {loading ? (
+                    <div className="text-sm text-slate-600">Loading activity...</div>
+                  ) : systemStats?.recentActivity && systemStats.recentActivity.length > 0 ? (
+                    systemStats.recentActivity.slice(0, 5).map((activity: any) => (
+                      <div key={activity.id} className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                        <div className="flex-shrink-0">
+                          {getActionIcon(activity.action)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">
+                            {activity.user}
+                          </p>
+                          <p className="text-sm text-slate-600 truncate">
+                            {activity.action.replace(/_/g, ' ').toLowerCase()}
+                          </p>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {formatDate(activity.timestamp)}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-slate-600">No recent activity</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ESG Analytics Tab */}
+          <TabsContent value="esg-analytics" className="space-y-6">
+            {/* ESG Framework Performance */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <BarChart3 className="h-5 w-5" />
+                    <span>Framework Adoption</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Usage statistics across ESG frameworks
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      { name: 'TCFD', count: systemStats?.esgAssessments?.tcfd || 0, color: 'bg-blue-500' },
+                      { name: 'CSRD', count: systemStats?.esgAssessments?.csrd || 0, color: 'bg-green-500' },
+                      { name: 'GRI', count: systemStats?.esgAssessments?.gri || 0, color: 'bg-purple-500' },
+                      { name: 'ISSB', count: systemStats?.esgAssessments?.issb || 0, color: 'bg-orange-500' },
+                      { name: 'SASB', count: systemStats?.esgAssessments?.sasb || 0, color: 'bg-red-500' }
+                    ].map((framework) => (
+                      <div key={framework.name} className="flex items-center space-x-3">
+                        <div className="w-16 text-sm font-medium">{framework.name}</div>
+                        <div className="flex-1 bg-slate-200 rounded-full h-2">
+                          <div 
+                            className={`${framework.color} h-2 rounded-full`} 
+                            style={{ 
+                              width: `${systemStats?.esgAssessments?.total > 0 ? 
+                                (framework.count / systemStats.esgAssessments.total) * 100 : 0}%` 
+                            }}
+                          ></div>
+                        </div>
+                        <div className="w-12 text-sm text-right">{framework.count}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Target className="h-5 w-5" />
+                    <span>Compliance Status</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Overall compliance check status across all projects
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {loading ? (
+                      <div className="text-sm text-slate-600">Loading compliance data...</div>
+                    ) : systemStats?.complianceChecks?.byStatus ? (
+                      Object.entries(systemStats.complianceChecks.byStatus).map(([status, count]) => (
+                        <div key={status} className="flex items-center justify-between">
+                          <span className="text-sm font-medium capitalize">{status.toLowerCase()}</span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-24 bg-slate-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full ${
+                                  status === 'COMPLETED' ? 'bg-green-500' :
+                                  status === 'IN_PROGRESS' ? 'bg-yellow-500' :
+                                  status === 'FAILED' ? 'bg-red-500' : 'bg-gray-500'
+                                }`}
+                                style={{ 
+                                  width: `${systemStats.complianceChecks.total > 0 ? 
+                                    (count as number / systemStats.complianceChecks.total) * 100 : 0}%` 
+                                }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-medium w-8 text-right">{count as number}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-slate-600">No compliance data available</div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Data Quality Metrics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5" />
+                  <span>Data Quality Metrics</span>
+                </CardTitle>
+                <CardDescription>
+                  ESG data validation and completeness status
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">
+                      {systemStats?.dataPoints?.total || 0}
+                    </div>
+                    <div className="text-sm text-slate-600">Total Data Points</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-2">
+                      {systemStats?.dataPoints?.byCategory?.Environmental || 0}
+                    </div>
+                    <div className="text-sm text-slate-600">Environmental Metrics</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-purple-600 mb-2">
+                      {systemStats?.dataPoints?.byCategory?.Social || 0}
+                    </div>
+                    <div className="text-sm text-slate-600">Social Metrics</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Assessment Performance */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-5 w-5" />
+                  <span>Recent Assessment Activity</span>
+                </CardTitle>
+                <CardDescription>
+                  Latest ESG assessment completions and performance
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-700">85%</div>
+                      <div className="text-sm text-blue-600">Avg TCFD Score</div>
+                    </div>
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="text-2xl font-bold text-green-700">78%</div>
+                      <div className="text-sm text-green-600">Avg CSRD Score</div>
+                    </div>
+                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-700">72%</div>
+                      <div className="text-sm text-purple-600">Avg GRI Score</div>
+                    </div>
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-700">80%</div>
+                      <div className="text-sm text-orange-600">Avg ISSB Score</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">

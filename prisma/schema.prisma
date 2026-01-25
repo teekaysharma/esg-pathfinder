@@ -78,6 +78,7 @@ model Project {
   csrdAssessments      CSRDAassessment[]
   issbAssessments      ISSBAssessment[]
   sasbAssessments      SASBAssessment[]
+  griAssessments       GRIAssessment[]
   dataPoints          ESGDataPoint[]
   workflows           Workflow[]
   complianceChecks    ComplianceCheck[]
@@ -236,16 +237,26 @@ model CSRDAassessment {
   @@map("csrd_assessments")
 }
 
-// ISSB (International Sustainability Standards Board) Framework
+// ISSB (International Sustainability Standards Board) Framework - Enhanced IFRS Standards
 model ISSBAssessment {
   id              String   @id @default(cuid())
   projectId       String
   ifrsS1          Json     // IFRS S1: General Requirements for Sustainability-related Financial Disclosures
   ifrsS2          Json     // IFRS S2: Climate-related Disclosures
+  ifrsS3          Json?    // IFRS S3: Nature-related Risks and Opportunities (proposed)
+  ifrsS4          Json?    // IFRS S4: Human Rights and Social (proposed)
+  ifrsS5          Json?    // IFRS S5: Human Resource Management (proposed)
+  ifrsS6          Json?    // IFRS S6: Pollution and Resources (proposed)
+  ifrsS7          Json?    // IFRS S7: Circular Economy (proposed)
   sustainability  Json     // General sustainability disclosures
   climate        Json     // Climate-specific disclosures
+  nature         Json?     // Nature-related disclosures
+  humanRights    Json?     // Human rights and social disclosures
+  resources      Json?     // Pollution and resources disclosures
+  circularEconomy Json?    // Circular economy disclosures
   overallScore   Float?
   recommendations Json?
+  readiness       Json?    // IFRS implementation readiness assessment
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -273,6 +284,29 @@ model SASBAssessment {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("sasb_assessments")
+}
+
+// GRI (Global Reporting Initiative) Standards Framework
+model GRIAssessment {
+  id                  String   @id @default(cuid())
+  projectId           String
+  universalStandards  Json     // GRI 1: Foundation, GRI 2: General Disclosures, GRI 3: Material Topics
+  sectorStandards     Json     // GRI Sector Standards (if applicable)
+  topicStandards      Json     // GRI Topic Standards (Economic, Environmental, Social)
+  reportingPrinciples Json     // GRI reporting principles assessment
+  stakeholderEngagement Json?  // Stakeholder engagement assessment
+  materiality         Json     // Materiality assessment results
+  disclosures         Json     // GRI-specific disclosure requirements
+  overallScore        Float?
+  gapAnalysis         Json?
+  recommendations     Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("gri_assessments")
 }
 
 // Standardized ESG Data Points
