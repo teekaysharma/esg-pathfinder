@@ -1,0 +1,447 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  password      String   // Added password field for authentication
+  role          UserRole @default(VIEWER)
+  isActive      Boolean  @default(true)
+  emailVerified Boolean  @default(false)
+  lastLoginAt   DateTime?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organisations Organisation[] @relation("UserOrganisations")
+  projects      Project[]      @relation("ProjectCreator")
+  evidences     Evidence[]
+  auditLogs     AuditLog[]
+  // New workflow and compliance relations
+  assignedWorkflows     Workflow[]
+  assignedTasks         WorkflowTask[]
+  assignedApprovals     WorkflowApproval[]
+  assignedComplianceChecks ComplianceCheck[]
+
+  @@map("users")
+}
+
+model Organisation {
+  id          String   @id @default(cuid())
+  name        String
+  country     String?
+  sector      String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users    User[]    @relation("UserOrganisations")
+  projects Project[]
+
+  @@map("organisations")
+}
+
+model Project {
+  id                   String            @id @default(cuid())
+  organisationId       String
+  name                 String
+  scopeRaw             String?
+  scopeStructuredJson  Json?
+  boundariesJson       Json?
+  createdBy            String
+  status               ProjectStatus     @default(DRAFT)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  // Relations
+  organisation        Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  creator             User              @relation("ProjectCreator", fields: [createdBy], references: [id])
+  materialityMaps     MaterialityMap[]
+  reports             Report[]
+  evidences           Evidence[]
+  promptVersions      PromptVersion[]
+  auditLogs           AuditLog[]
+  // ESG Framework Relations
+  tcfdAssessments      TCFDAssessment[]
+  csrdAssessments      CSRDAassessment[]
+  issbAssessments      ISSBAssessment[]
+  sasbAssessments      SASBAssessment[]
+  dataPoints          ESGDataPoint[]
+  workflows           Workflow[]
+  complianceChecks    ComplianceCheck[]
+
+  @@map("projects")
+}
+
+model RegulatoryProfile {
+  id            String   @id @default(cuid())
+  jurisdiction  String
+  standards     Json     // String array stored as JSON
+  lastSyncedAt  DateTime?
+  sourceRefs    Json     // String array stored as JSON
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("regulatory_profiles")
+}
+
+model MaterialityMap {
+  id            String   @id @default(cuid())
+  projectId     String
+  topics        Json     // String array stored as JSON
+  scores        Json     // Number array stored as JSON
+  justification Json     // String array stored as JSON
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("materiality_maps")
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  projectId      String
+  version        Int
+  contentJson    Json
+  xbrlContent    String?  // XBRL tagged content
+  pdfUrl         String?
+  generatedAt    DateTime @default(now())
+  generatorMeta  Json?
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model Evidence {
+  id          String   @id @default(cuid())
+  projectId   String
+  fileUrl     String
+  uploadedBy  String
+  clauseRefs  Json     // String array stored as JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader User    @relation(fields: [uploadedBy], references: [id])
+
+  @@map("evidences")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actor       String
+  action      String
+  detailJson  Json?
+  timestamp   DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [actor], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+
+  @@map("audit_logs")
+}
+
+model PromptVersion {
+  id             String   @id @default(cuid())
+  projectId      String?
+  promptText     String
+  embeddingsMeta Json?
+  createdAt      DateTime @default(now())
+
+  // Relations
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@map("prompt_versions")
+}
+
+model RuleUpdate {
+  id             String   @id @default(cuid())
+  jurisdiction   String
+  changeSummary  String
+  sourceUrl      String?
+  detectedAt     DateTime @default(now())
+
+  @@map("rule_updates")
+}
+
+enum UserRole {
+  ADMIN
+  AUDITOR
+  ANALYST
+  VIEWER
+}
+
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  REVIEW
+  COMPLETED
+  ARCHIVED
+}
+
+// TCFD (Task Force on Climate-related Financial Disclosures) Framework
+model TCFDAssessment {
+  id             String   @id @default(cuid())
+  projectId      String
+  governance     Json     // Governance structure and oversight
+  strategy       Json     // Climate-related risks and opportunities
+  riskManagement Json     // Risk management processes
+  metricsTargets Json     // Metrics and targets used
+  overallScore   Float?
+  recommendations Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("tcfd_assessments")
+}
+
+// CSRD (Corporate Sustainability Reporting Directive) Framework
+model CSRDAassessment {
+  id                  String   @id @default(cuid())
+  projectId           String
+  doubleMateriality   Json     // Double materiality assessment results
+  esrsReporting       Json     // ESRS (European Sustainability Reporting Standards) data
+  sectorSpecific      Json     // Sector-specific requirements
+  dueDiligence        Json     // Due diligence procedures
+  datapoints          Json     // CSRD-specific data points
+  overallCompliance   Float?
+  gapAnalysis         Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("csrd_assessments")
+}
+
+// ISSB (International Sustainability Standards Board) Framework
+model ISSBAssessment {
+  id              String   @id @default(cuid())
+  projectId       String
+  ifrsS1          Json     // IFRS S1: General Requirements for Sustainability-related Financial Disclosures
+  ifrsS2          Json     // IFRS S2: Climate-related Disclosures
+  sustainability  Json     // General sustainability disclosures
+  climate        Json     // Climate-specific disclosures
+  overallScore   Float?
+  recommendations Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("issb_assessments")
+}
+
+// Enhanced SASB (Sustainability Accounting Standards Board) Framework
+model SASBAssessment {
+  id              String   @id @default(cuid())
+  projectId       String
+  industry        String   // SASB industry classification
+  standards       Json     // Industry-specific SASB standards
+  metrics         Json     // SASB metrics and calculations
+  disclosures     Json     // SASB disclosure requirements
+  benchmarkData   Json     // Industry benchmark data
+  overallScore   Float?
+  gapAnalysis     Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("sasb_assessments")
+}
+
+// Standardized ESG Data Points
+model ESGDataPoint {
+  id             String   @id @default(cuid())
+  projectId      String
+  category       String   // Environmental, Social, Governance
+  subcategory    String   // e.g., Climate, Energy, Diversity, etc.
+  metricName     String   // Standardized metric name
+  metricCode     String   // Standard code (e.g., GRI_302_1, SASB_TC_AC_130a)
+  value          Float?
+  unit           String?
+  year           Int?
+  period         String?  // Annual, Quarterly, Monthly
+  dataSource     String?
+  confidence     Float?   // Data quality confidence score (0-1)
+  validationStatus String @default("PENDING") // PENDING, VALIDATED, REJECTED, REVIEW
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("esg_data_points")
+}
+
+// Compliance Workflow Management
+model Workflow {
+  id          String        @id @default(cuid())
+  projectId   String
+  name        String
+  description String?
+  type        WorkflowType @default(COMPLIANCE)
+  status      WorkflowStatus @default(DRAFT)
+  assigneeId  String?
+  dueDate     DateTime?
+  completedAt DateTime?
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  project    Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee   User?         @relation(fields: [assigneeId], references: [id])
+  tasks      WorkflowTask[]
+  approvals  WorkflowApproval[]
+
+  @@map("workflows")
+}
+
+model WorkflowTask {
+  id          String   @id @default(cuid())
+  workflowId  String
+  title       String
+  description String?
+  type        TaskType @default(MANUAL)
+  status      TaskStatus @default(PENDING)
+  assigneeId  String?
+  dueDate     DateTime?
+  completedAt DateTime?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  assignee User?    @relation(fields: [assigneeId], references: [id])
+
+  @@map("workflow_tasks")
+}
+
+model WorkflowApproval {
+  id          String        @id @default(cuid())
+  workflowId  String
+  level       Int
+  title       String
+  description String?
+  status      ApprovalStatus @default(PENDING)
+  assigneeId  String?
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
+  comments    String?
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  assignee User?    @relation(fields: [assigneeId], references: [id])
+
+  @@map("workflow_approvals")
+}
+
+// Compliance Check Management
+model ComplianceCheck {
+  id             String   @id @default(cuid())
+  projectId      String
+  framework      String   // TCFD, CSRD, ISSB, SASB, GRI, etc.
+  requirement    String   // Specific compliance requirement
+  status         ComplianceStatus @default(PENDING)
+  result         String?  // PASS, FAIL, PARTIAL, NOT_APPLICABLE
+  evidence       String?  // Evidence reference
+  gapDescription String?
+  remediation    String?
+  priority       Priority @default(MEDIUM)
+  assigneeId     String?
+  dueDate        DateTime?
+  completedAt    DateTime?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee User?   @relation(fields: [assigneeId], references: [id])
+
+  @@map("compliance_checks")
+}
+
+// Enums for new models
+enum WorkflowType {
+  COMPLIANCE
+  DATA_COLLECTION
+  REVIEW
+  APPROVAL
+  AUDIT
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  IN_REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskType {
+  MANUAL
+  AUTOMATED
+  REVIEW
+  APPROVAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ESCALATED
+}
+
+enum ComplianceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  NOT_APPLICABLE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
