@@ -1,0 +1,309 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "defaultValue": "production",
+      "allowedValues": ["development", "staging", "production"],
+      "metadata": {
+        "description": "Environment name"
+      }
+    },
+    "appName": {
+      "type": "string",
+      "defaultValue": "esg-pathfinder",
+      "metadata": {
+        "description": "Application name"
+      }
+    },
+    "databasePassword": {
+      "type": "securestring",
+      "minLength": 8,
+      "metadata": {
+        "description": "Database password (must be at least 8 characters)"
+      }
+    },
+    "nextAuthSecret": {
+      "type": "securestring",
+      "minLength": 32,
+      "metadata": {
+        "description": "NextAuth secret key (must be at least 32 characters)"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources"
+      }
+    }
+  },
+  "variables": {
+    "appServicePlanName": "[concat(parameters('appName'), '-plan')]",
+    "appServiceName": "[concat(parameters('appName'), '-', parameters('environment'))]",
+    "serverFarmName": "[concat(parameters('appName'), '-farm')]",
+    "storageAccountName": "[concat(uniqueString(resourceGroup().id), 'storage')]",
+    "containerRegistryName": "[concat(uniqueString(resourceGroup().id), 'acr')]",
+    "databaseServerName": "[concat(parameters('appName'), '-db')]",
+    "databaseName": "[concat(parameters('appName'), '-db')]",
+    "redisCacheName": "[concat(parameters('appName'), '-redis')]",
+    "keyVaultName": "[concat(parameters('appName'), '-kv')]",
+    "appInsightsName": "[concat(parameters('appName'), '-ai')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2021-03-01",
+      "name": "[variables('serverFarmName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "P1v2",
+        "tier": "PremiumV2"
+      },
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-03-01",
+      "name": "[variables('appServiceName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('serverFarmName'))]"
+      ],
+      "kind": "linux",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('serverFarmName'))]",
+        "siteConfig": {
+          "linuxFxVersion": "DOCKER|",
+          "appSettings": [
+            {
+              "name": "DOCKER_CUSTOM_IMAGE_NAME",
+              "value": "[concat(variables('containerRegistryName'), '.azurecr.io/', parameters('appName'), ':latest')]"
+            },
+            {
+              "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+              "value": "true"
+            },
+            {
+              "name": "NODE_ENV",
+              "value": "[parameters('environment')]"
+            },
+            {
+              "name": "NEXTAUTH_SECRET",
+              "value": "[parameters('nextAuthSecret')]"
+            },
+            {
+              "name": "NEXTAUTH_URL",
+              "value": "[concat('https://', variables('appServiceName'), '.azurewebsites.net')]"
+            }
+          ],
+          "alwaysOn": true,
+          "http20Enabled": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "remoteDebuggingEnabled": false,
+          "webSocketsEnabled": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+      "apiVersion": "2022-12-01",
+      "name": "[variables('databaseServerName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "B_Standard_B2s",
+        "tier": "Burstable"
+      },
+      "properties": {
+        "version": "15",
+        "administratorLogin": "postgres",
+        "administratorLoginPassword": "[parameters('databasePassword')]",
+        "storage": {
+          "storageSizeGB": 32
+        },
+        "backup": {
+          "backupRetentionDays": 7,
+          "geoRedundantBackup": "Enabled"
+        },
+        "highAvailability": {
+          "mode": "Disabled"
+        },
+        "network": {
+          "publicNetworkAccess": "Enabled",
+          "delegatedSubnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'esg-pathfinder-vnet', 'db-subnet')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers/databases",
+      "apiVersion": "2022-12-01",
+      "name": "[concat(variables('databaseServerName'), '/', variables('databaseName'))]",
+      "properties": {
+        "charset": "UTF8",
+        "collation": "en_US.UTF8"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('databaseServerName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Cache/redis",
+      "apiVersion": "2022-06-01",
+      "name": "[variables('redisCacheName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "name": "Basic",
+          "family": "C",
+          "capacity": 0
+        },
+        "enableNonSslPort": false,
+        "redisConfiguration": {
+          "maxmemory-policy": "allkeys-lru",
+          "rdb-backup-enabled": "true",
+          "rdb-backup-frequency": "60",
+          "rdb-backup-max-snapshot-count": "1",
+          "rdb-storage-connection-string": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2022-09-01').keys[0].value)]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "accessTier": "Hot",
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "keyType": "Account"
+            },
+            "blob": {
+              "keyType": "Account"
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "defaultAction": "Allow"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2022-02-01-preview",
+      "name": "[variables('containerRegistryName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Basic"
+      },
+      "properties": {
+        "adminUserEnabled": true
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2022-07-01",
+      "name": "[variables('keyVaultName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "tenantId": "[subscription().tenantId]",
+        "sku": {
+          "family": "A",
+          "name": "standard"
+        },
+        "accessPolicies": [],
+        "enabledForTemplateDeployment": true,
+        "enabledForDeployment": true,
+        "enabledForDiskEncryption": true
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web"
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2021-03-01",
+      "name": "esg-pathfinder-vnet",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "app-subnet",
+            "properties": {
+              "addressPrefix": "10.0.1.0/24",
+              "delegations": [
+                {
+                  "name": "app-delegation",
+                  "properties": {
+                    "serviceName": "Microsoft.Web/serverFarms"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "db-subnet",
+            "properties": {
+              "addressPrefix": "10.0.2.0/24",
+              "delegations": [
+                {
+                  "name": "db-delegation",
+                  "properties": {
+                    "serviceName": "Microsoft.DBforPostgreSQL/flexibleServers"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "appServiceUrl": {
+      "type": "string",
+      "value": "[concat('https://', variables('appServiceName'), '.azurewebsites.net')]"
+    },
+    "databaseServerName": {
+      "type": "string",
+      "value": "[variables('databaseServerName')]"
+    },
+    "redisCacheName": {
+      "type": "string",
+      "value": "[variables('redisCacheName')]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[variables('storageAccountName')]"
+    },
+    "containerRegistryName": {
+      "type": "string",
+      "value": "[variables('containerRegistryName')]"
+    }
+  }
+}
