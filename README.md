@@ -1,141 +1,262 @@
-# 🚀 Welcome to Z.ai Code Scaffold
+# 🌍 ESG Pathfinder Platform
 
-A modern, production-ready web application scaffold powered by cutting-edge technologies, designed to accelerate your development with [Z.ai](https://chat.z.ai)'s AI-powered coding assistance.
+A comprehensive, production-ready ESG (Environmental, Social, and Governance) compliance management platform supporting major global frameworks including TCFD, CSRD, GRI, SASB, and IFRS standards.
 
-## ✨ Technology Stack
+## ✨ Key Features
 
-This scaffold provides a robust foundation built with:
+### 🏢 **Framework Support**
+- **🏛️ TCFD** - Task Force on Climate-related Financial Disclosures
+- **🇪🇺 CSRD** - Corporate Sustainability Reporting Directive
+- **🌍 GRI** - Global Reporting Initiative Standards
+- **🏢 SASB** - Sustainability Accounting Standards Board
+- **📊 IFRS** - International Financial Reporting Standards (S1-S5)
 
-### 🎯 Core Framework
-- **⚡ Next.js 15** - The React framework for production with App Router
-- **📘 TypeScript 5** - Type-safe JavaScript for better developer experience
-- **🎨 Tailwind CSS 4** - Utility-first CSS framework for rapid UI development
+### 🤖 **AI-Powered Assessment**
+- **Z-AI SDK Integration** for intelligent compliance analysis
+- **Automated Gap Analysis** with actionable recommendations
+- **Confidence Scoring** for assessment reliability
+- **Real-time Validation** with multi-layer quality checks
 
-### 🧩 UI Components & Styling
-- **🧩 shadcn/ui** - High-quality, accessible components built on Radix UI
-- **🎯 Lucide React** - Beautiful & consistent icon library
-- **🌈 Framer Motion** - Production-ready motion library for React
-- **🎨 Next Themes** - Perfect dark mode in 2 lines of code
+### 📊 **Comprehensive Dashboard**
+- **Real-time ESG Metrics** and compliance tracking
+- **Interactive Visualizations** with charts and graphs
+- **Material Topic Analysis** and prioritization
+- **Benchmark Comparisons** against industry standards
 
-### 📋 Forms & Validation
-- **🎣 React Hook Form** - Performant forms with easy validation
-- **✅ Zod** - TypeScript-first schema validation
+### 🔐 **Enterprise Features**
+- **Role-Based Access Control** (Admin, Auditor, Analyst, Viewer)
+- **Audit Trail** with complete activity logging
+- **Data Validation Engine** with quality scoring
+- **Workflow Management** with approval processes
 
-### 🔄 State Management & Data Fetching
-- **🐻 Zustand** - Simple, scalable state management
-- **🔄 TanStack Query** - Powerful data synchronization for React
-- **🌐 Axios** - Promise-based HTTP client
+## 🚀 Deployment Options
 
-### 🗄️ Database & Backend
-- **🗄️ Prisma** - Next-generation Node.js and TypeScript ORM
-- **🔐 NextAuth.js** - Complete open-source authentication solution
+Choose from 7 deployment platforms:
 
-### 🎨 Advanced UI Features
-- **📊 TanStack Table** - Headless UI for building tables and datagrids
-- **🖱️ DND Kit** - Modern drag and drop toolkit for React
-- **📊 Recharts** - Redefined chart library built with React and D3
-- **🖼️ Sharp** - High performance image processing
+| Platform | Branch | Deploy Time | Cost | Best For |
+|----------|--------|-------------|------|----------|
+| **🌊 Streamlit** | `deployment/streamlit` | 5 min | Free-$10/mo | Data apps |
+| **⚡ Vercel** | `deployment/vercel` | 5 min | Free-$20/mo | Web apps |
+| **🌊 Netlify** | `deployment/netlify` | 10 min | Free-$19/mo | Static sites |
+| **🚂 Railway** | `deployment/railway` | 10 min | $5+/mo | Full-stack |
+| **🐳 Docker** | `deployment/docker` | 15 min | Varies | Self-hosting |
+| **☁️ AWS** | `deployment/aws` | 30 min | $100+/mo | Enterprise |
+| **🔷 Azure** | `deployment/azure` | 30 min | $200+/mo | Enterprise |
 
-### 🌍 Internationalization & Utilities
-- **🌍 Next Intl** - Internationalization library for Next.js
-- **📅 Date-fns** - Modern JavaScript date utility library
-- **🪝 ReactUse** - Collection of essential React hooks for modern development
+## 🌊 Quick Start with Streamlit (Recommended)
 
-## 🎯 Why This Scaffold?
+### **Option 1: Streamlit Cloud (5 minutes)**
+1. Go to [Streamlit Cloud](https://share.streamlit.io/)
+2. Connect your GitHub account
+3. Select: `teekaysharma/esg-pathfinder`
+4. Select branch: `deployment/streamlit`
+5. Main file: `streamlit_app.py`
+6. Click "Deploy"
 
-- **🏎️ Fast Development** - Pre-configured tooling and best practices
-- **🎨 Beautiful UI** - Complete shadcn/ui component library with advanced interactions
-- **🔒 Type Safety** - Full TypeScript configuration with Zod validation
-- **📱 Responsive** - Mobile-first design principles with smooth animations
-- **🗄️ Database Ready** - Prisma ORM configured for rapid backend development
-- **🔐 Auth Included** - NextAuth.js for secure authentication flows
-- **📊 Data Visualization** - Charts, tables, and drag-and-drop functionality
-- **🌍 i18n Ready** - Multi-language support with Next Intl
-- **🚀 Production Ready** - Optimized build and deployment settings
-- **🤖 AI-Friendly** - Structured codebase perfect for AI assistance
-
-## 🚀 Quick Start
-
+### **Option 2: Local Development**
 ```bash
+# Clone the repository
+git clone https://github.com/teekaysharma/esg-pathfinder.git
+cd esg-pathfinder
+
+# Switch to Streamlit branch
+git checkout deployment/streamlit
+
 # Install dependencies
+pip install -r requirements.txt
 npm install
+
+# Run locally
+streamlit run streamlit_app.py
+```
+
+### **Option 3: Docker Deployment**
+```bash
+# Switch to Streamlit branch
+git checkout deployment/streamlit
+
+# Build and run
+docker build -t esg-pathfinder-streamlit .
+docker run -p 8501:8501 esg-pathfinder-streamlit
+```
+
+## 📋 Technology Stack
+
+### **Frontend (Streamlit)**
+- **Streamlit** - Python web app framework
+- **Plotly** - Interactive charts and visualizations
+- **Pandas** - Data manipulation and analysis
+- **NumPy** - Numerical computations
+
+### **Backend (Next.js)**
+- **Next.js 16** - React framework with App Router
+- **TypeScript 5** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **Prisma** - Database ORM
+- **NextAuth.js** - Authentication
+
+### **Database & Infrastructure**
+- **SQLite/PostgreSQL** - Database
+- **Z-AI SDK** - AI-powered assessments
+- **RESTful APIs** - Complete backend services
+
+## 🎯 Platform Features
+
+### **📊 ESG Dashboard**
+- **Framework Compliance Scores** with real-time updates
+- **Material Topic Analysis** and prioritization
+- **Trend Visualization** with interactive charts
+- **Benchmark Comparisons** against industry standards
+
+### **🏢 Framework Assessments**
+- **TCFD**: Governance, Strategy, Risk Management, Metrics & Targets
+- **CSRD**: Double Materiality, ESRS Standards, Due Diligence
+- **GRI**: Universal Standards, Topic Standards, Sector Standards
+- **SASB**: Industry-specific standards and metrics
+- **IFRS**: S1-S5 Sustainability Standards
+
+### **📤 Data Collection**
+- **Automated Data Validation** with quality scoring
+- **Bulk Data Upload** (CSV, Excel, JSON)
+- **Real-time Progress Tracking**
+- **Confidence Scoring** for data reliability
+
+### **📈 Analytics & Reporting**
+- **Performance Analytics** with trend analysis
+- **Gap Analysis** with actionable recommendations
+- **Audit-Ready Reports** in multiple formats
+- **Custom Framework Reports**
+
+### **⚙️ Administration**
+- **User Management** with role-based access
+- **System Configuration** and settings
+- **Audit Logging** with complete activity tracking
+- **Backup and Maintenance** tools
+
+## 🔧 Development Setup
+
+### **Prerequisites**
+- Node.js 18+ and npm/yarn
+- Python 3.9+ and pip
+- Git
+
+### **Local Development**
+```bash
+# Clone the repository
+git clone https://github.com/teekaysharma/esg-pathfinder.git
+cd esg-pathfinder
+
+# Install Node.js dependencies
+npm install
+
+# Install Python dependencies (for Streamlit)
+pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env.local
+
+# Initialize database
+npm run db:push
+
+# Create admin user
+npx tsx seed-admin.ts
 
 # Start development server
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application running.
+### **Environment Variables**
+```env
+# Database
+DATABASE_URL="file:./dev.db"
 
-## 🤖 Powered by Z.ai
+# Authentication
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
 
-This scaffold is optimized for use with [Z.ai](https://chat.z.ai) - your AI assistant for:
-
-- **💻 Code Generation** - Generate components, pages, and features instantly
-- **🎨 UI Development** - Create beautiful interfaces with AI assistance  
-- **🔧 Bug Fixing** - Identify and resolve issues with intelligent suggestions
-- **📝 Documentation** - Auto-generate comprehensive documentation
-- **🚀 Optimization** - Performance improvements and best practices
-
-Ready to build something amazing? Start chatting with Z.ai at [chat.z.ai](https://chat.z.ai) and experience the future of AI-powered development!
-
-## 📁 Project Structure
-
-```
-src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable React components
-│   └── ui/             # shadcn/ui components
-├── hooks/              # Custom React hooks
-└── lib/                # Utility functions and configurations
+# AI Services
+Z_AI_API_KEY="your-z-ai-api-key"
+Z_AI_BASE_URL="https://api.z-ai.dev"
 ```
 
-## 🎨 Available Features & Components
+## 📚 Documentation
 
-This scaffold includes a comprehensive set of modern web development tools:
+- **[Deployment Guide](./DEPLOYMENT.md)** - Platform-specific deployment instructions
+- **[API Documentation](./docs/api.md)** - Complete API reference
+- **[Framework Guides](./docs/frameworks/)** - Individual framework documentation
+- **[Contributing Guide](./CONTRIBUTING.md)** - Development and contribution guidelines
 
-### 🧩 UI Components (shadcn/ui)
-- **Layout**: Card, Separator, Aspect Ratio, Resizable Panels
-- **Forms**: Input, Textarea, Select, Checkbox, Radio Group, Switch
-- **Feedback**: Alert, Toast (Sonner), Progress, Skeleton
-- **Navigation**: Breadcrumb, Menubar, Navigation Menu, Pagination
-- **Overlay**: Dialog, Sheet, Popover, Tooltip, Hover Card
-- **Data Display**: Badge, Avatar, Calendar
+## 🎯 Use Cases
 
-### 📊 Advanced Data Features
-- **Tables**: Powerful data tables with sorting, filtering, pagination (TanStack Table)
-- **Charts**: Beautiful visualizations with Recharts
-- **Forms**: Type-safe forms with React Hook Form + Zod validation
+### **For Corporations**
+- **ESG Compliance Management** across multiple frameworks
+- **Automated Reporting** with audit-ready documentation
+- **Risk Assessment** and mitigation strategies
+- **Stakeholder Communication** with transparent ESG data
 
-### 🎨 Interactive Features
-- **Animations**: Smooth micro-interactions with Framer Motion
-- **Drag & Drop**: Modern drag-and-drop functionality with DND Kit
-- **Theme Switching**: Built-in dark/light mode support
+### **For Consultants**
+- **Client ESG Assessments** with comprehensive analysis
+- **Framework Mapping** and gap identification
+- **Implementation Roadmaps** with prioritized actions
+- **Benchmark Analysis** against industry standards
 
-### 🔐 Backend Integration
-- **Authentication**: Ready-to-use auth flows with NextAuth.js
-- **Database**: Type-safe database operations with Prisma
-- **API Client**: HTTP requests with Axios + TanStack Query
-- **State Management**: Simple and scalable with Zustand
+### **For Investors**
+- **ESG Due Diligence** with standardized metrics
+- **Portfolio Analysis** and risk assessment
+- **Compliance Monitoring** across investments
+- **Reporting Integration** with investment strategies
 
-### 🌍 Production Features
-- **Internationalization**: Multi-language support with Next Intl
-- **Image Optimization**: Automatic image processing with Sharp
-- **Type Safety**: End-to-end TypeScript with Zod validation
-- **Essential Hooks**: 100+ useful React hooks with ReactUse for common patterns
+## 🌟 Key Differentiators
 
-## 🤝 Get Started with Z.ai
+### **Comprehensive Framework Support**
+- **5 Major Frameworks** in one unified platform
+- **Cross-Framework Mapping** for efficient reporting
+- **Automated Alignment** between different standards
 
-1. **Clone this scaffold** to jumpstart your project
-2. **Visit [chat.z.ai](https://chat.z.ai)** to access your AI coding assistant
-3. **Start building** with intelligent code generation and assistance
-4. **Deploy with confidence** using the production-ready setup
+### **AI-Powered Intelligence**
+- **Smart Assessments** using Z-AI SDK
+- **Automated Recommendations** with priority scoring
+- **Confidence Metrics** for data reliability
+
+### **Enterprise-Grade Features**
+- **Role-Based Security** with audit trails
+- **Scalable Architecture** for global deployment
+- **Professional UI/UX** with mobile support
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
+
+### **Quick Contribution Steps**
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Documentation**: Check our comprehensive guides
+- **Issues**: Report bugs via GitHub Issues
+- **Discussions**: Join our community discussions
+- **Email**: support@esgpathfinder.com
+
+## 🎊 Ready to Transform ESG Compliance?
+
+**Get started in minutes:**
+
+1. **🌊 Deploy on Streamlit Cloud** - Fastest option (5 minutes)
+2. **📊 Explore the Dashboard** - See framework compliance in action
+3. **📤 Upload Your Data** - Start with sample data or your own
+4. **🎯 Run Assessments** - Get AI-powered compliance analysis
+5. **📈 Generate Reports** - Export audit-ready documentation
 
 ---
 
-Built with ❤️ for the developer community. Supercharged by [Z.ai](https://chat.z.ai) 🚀
+**🌍 ESG Pathfinder - Empowering Sustainable Business Decisions**
+
+Built with ❤️ for the global sustainability community. Supercharged by [Z.ai](https://chat.z.ai) 🚀
