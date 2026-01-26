@@ -23,11 +23,14 @@ A comprehensive, production-ready ESG (Environmental, Social, and Governance) co
 - **Material Topic Analysis** and prioritization
 - **Benchmark Comparisons** against industry standards
 
-### 🔐 **Enterprise Features**
-- **Role-Based Access Control** (Admin, Auditor, Analyst, Viewer)
-- **Audit Trail** with complete activity logging
-- **Data Validation Engine** with quality scoring
-- **Workflow Management** with approval processes
+### 🔐 **Enterprise Security Features**
+- **🛡️ Advanced Authentication** with JWT-based security
+- **🚨 Rate Limiting** and DDoS protection
+- **🔍 Input Validation** with XSS and SQL injection prevention
+- **📊 Comprehensive Audit Trail** with structured logging
+- **🔒 Role-Based Access Control** (Admin, Auditor, Analyst, Viewer)
+- **🛡️ Security Headers** and CSP protection
+- **📈 Performance Monitoring** with request tracking
 
 ## 🚀 Deployment Options
 
@@ -170,21 +173,43 @@ npm run dev
 # Database
 DATABASE_URL="file:./dev.db"
 
-# Authentication
-NEXTAUTH_SECRET="your-secret-key"
+# 🔐 CRITICAL: Authentication (REQUIRED)
+JWT_SECRET="your-super-secure-jwt-secret-key-minimum-32-characters-long"
+JWT_EXPIRES_IN="24h"
+
+# NextAuth Configuration
+NEXTAUTH_SECRET="your-nextauth-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
 
 # AI Services
 Z_AI_API_KEY="your-z-ai-api-key"
 Z_AI_BASE_URL="https://api.z-ai.dev"
+
+# Redis Configuration (for caching and rate limiting)
+REDIS_URL="redis://localhost:6379"
+
+# Security Configuration
+NODE_ENV="development"
+CORS_ORIGIN="http://localhost:3000"
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Logging Configuration
+LOG_LEVEL="info"
+LOG_FILE_PATH="./logs/app.log"
 ```
+
+⚠️ **Important**: `JWT_SECRET` is now required for security. Generate a secure random key (minimum 32 characters).
 
 ## 📚 Documentation
 
-- **[Deployment Guide](./DEPLOYMENT.md)** - Platform-specific deployment instructions
-- **[API Documentation](./docs/api.md)** - Complete API reference
-- **[Framework Guides](./docs/frameworks/)** - Individual framework documentation
-- **[Contributing Guide](./CONTRIBUTING.md)** - Development and contribution guidelines
+- **[📖 CHANGELOG](./CHANGELOG.md)** - Version history and updates
+- **[🔒 Security Implementation](./SECURITY_IMPLEMENTATION.md)** - Security features and setup
+- **[🧪 Testing Guide](./docs/testing.md)** - Testing framework and coverage
+- **[🚀 Deployment Guide](./DEPLOYMENT.md)** - Platform-specific deployment instructions
+- **[📚 API Documentation](./docs/api.md)** - Complete API reference
+- **[🏢 Framework Guides](./docs/frameworks/)** - Individual framework documentation
+- **[🤝 Contributing Guide](./CONTRIBUTING.md)** - Development and contribution guidelines
 
 ## 🎯 Use Cases
 

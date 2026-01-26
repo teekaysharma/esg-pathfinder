@@ -2,8 +2,19 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserRole } from '@prisma/client'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+// Secure JWT secret management - no hardcoded secrets
+const JWT_SECRET = process.env.JWT_SECRET
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h'
 const SALT_ROUNDS = 12
+
+// Validate required environment variables on startup
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required for production deployment')
+}
+
+if (JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be at least 32 characters long for security')
+}
 
 export interface JWTPayload {
   userId: string
@@ -20,7 +31,7 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' })
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
 }
 
 export function verifyToken(token: string): JWTPayload | null {

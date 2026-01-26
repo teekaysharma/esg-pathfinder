@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hashPassword, verifyPassword, generateToken } from '@/lib/auth'
 import { loginSchema } from '@/lib/validations'
+import { withAuthRateLimit } from '@/lib/security-middleware'
 
-export async function POST(request: NextRequest) {
+const loginHandler = async (request: NextRequest) => {
   try {
     const body = await request.json()
     
@@ -95,3 +96,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withAuthRateLimit(loginHandler)

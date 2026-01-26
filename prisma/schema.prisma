@@ -34,6 +34,13 @@ model User {
   assignedApprovals     WorkflowApproval[]
   assignedComplianceChecks ComplianceCheck[]
 
+  // Performance indexes
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([createdAt])
+  @@index([lastLoginAt])
+  @@index([role, isActive])
   @@map("users")
 }
 
@@ -50,6 +57,11 @@ model Organisation {
   users    User[]    @relation("UserOrganisations")
   projects Project[]
 
+  // Performance indexes
+  @@index([name])
+  @@index([country])
+  @@index([sector])
+  @@index([createdAt])
   @@map("organisations")
 }
 
@@ -83,6 +95,14 @@ model Project {
   workflows           Workflow[]
   complianceChecks    ComplianceCheck[]
 
+  // Performance indexes
+  @@index([organisationId])
+  @@index([createdBy])
+  @@index([status])
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([organisationId, status])
+  @@index([createdBy, status])
   @@map("projects")
 }
 
@@ -157,6 +177,13 @@ model AuditLog {
   project Project? @relation(fields: [projectId], references: [id])
   projectId String?
 
+  // Performance indexes
+  @@index([actor])
+  @@index([action])
+  @@index([timestamp])
+  @@index([projectId])
+  @@index([actor, timestamp])
+  @@index([action, timestamp])
   @@map("audit_logs")
 }
 
@@ -331,6 +358,17 @@ model ESGDataPoint {
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  // Performance indexes
+  @@index([projectId])
+  @@index([category])
+  @@index([subcategory])
+  @@index([metricCode])
+  @@index([year])
+  @@index([validationStatus])
+  @@index([projectId, category])
+  @@index([projectId, year])
+  @@index([category, year])
+  @@index([metricCode, year])
   @@map("esg_data_points")
 }
 

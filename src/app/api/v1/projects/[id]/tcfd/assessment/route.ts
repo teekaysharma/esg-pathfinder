@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import ZAI from "z-ai-web-dev-sdk"
 import { z } from "zod"
+import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
+import { UserRole } from "@prisma/client"
 
 const tcfdAssessmentSchema = z.object({
   governance: z.object({
@@ -77,15 +79,15 @@ interface TCFDAssessmentResponse {
   updatedAt: string
 }
 
-export async function POST(
-  request: NextRequest,
+const tcfdAssessmentHandler = async (
+  req: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
-    const body = await request.json() as TCFDAssessmentRequest
+    const body = await req.json() as TCFDAssessmentRequest
 
-    // Check if project exists
+    // Check if project exists and user has access
     const project = await db.project.findUnique({
       where: { id: projectId },
       include: {
@@ -98,6 +100,18 @@ export async function POST(
       return NextResponse.json(
         { error: "Project not found" },
         { status: 404 }
+      )
+    }
+
+    // Check if user has access to this project
+    const hasAccess = req.user!.role === UserRole.ADMIN || 
+                     req.user!.role === UserRole.AUDITOR || 
+                     project.createdBy === req.user!.userId
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
       )
     }
 
@@ -142,7 +156,7 @@ export async function POST(
     // Log the action
     await db.auditLog.create({
       data: {
-        actor: "system", // This should be the actual user ID
+        actor: req.user!.userId,
         action: "TCFD_ASSESSMENT_CREATED",
         detailJson: {
           projectId,
@@ -191,14 +205,14 @@ export async function POST(
   }
 }
 
-export async function GET(
-  request: NextRequest,
+const getTCFDAssessmentHandler = async (
+  req: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
 
-    // Check if project exists
+    // Check if project exists and user has access
     const project = await db.project.findUnique({
       where: { id: projectId }
     })
@@ -207,6 +221,18 @@ export async function GET(
       return NextResponse.json(
         { error: "Project not found" },
         { status: 404 }
+      )
+    }
+
+    // Check if user has access to this project
+    const hasAccess = req.user!.role === UserRole.ADMIN || 
+                     req.user!.role === UserRole.AUDITOR || 
+                     project.createdBy === req.user!.userId
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
       )
     }
 
@@ -248,6 +274,9 @@ export async function GET(
     )
   }
 }
+
+export const POST = withAuth(tcfdAssessmentHandler)
+export const GET = withAuth(getTCFDAssessmentHandler)
 
 async function generateTCFDFromScope(project: any): Promise<any> {
   const zai = await ZAI.create()
