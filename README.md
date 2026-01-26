@@ -1,4 +1,50 @@
-# 🚀 Welcome to Z.ai Code Scaffold
+## 🌍 ESG Pathfinder Platform
+
+This repository contains the **ESG Pathfinder** - a comprehensive AI-powered ESG (Environmental, Social, and Governance) compliance management platform.
+
+### 📱 Streamlit Dashboard
+A secure, feature-rich Streamlit dashboard for ESG compliance management:
+
+**🔐 Security Features:**
+- Production-ready authentication with PBKDF2 password hashing
+- Session management with automatic timeout
+- Comprehensive input validation and XSS prevention
+- Rate limiting and account lockout protection
+- Structured error handling and audit logging
+
+**🏛️ ESG Framework Support:**
+- **TCFD** - Task Force on Climate-related Financial Disclosures
+- **CSRD** - Corporate Sustainability Reporting Directive  
+- **GRI** - Global Reporting Initiative
+- **SASB** - Sustainability Accounting Standards Board
+
+**📊 Advanced Analytics:**
+- ESG radar charts and trend analysis
+- Interactive heatmaps and visualizations
+- Project comparison analytics
+- Multi-format data export (CSV, JSON, Excel)
+
+**🚀 Quick Start for Streamlit:**
+```bash
+# Navigate to Streamlit directory
+cd streamlit
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
+
+# Run dashboard
+streamlit run streamlit_app.py
+```
+
+**📖 Detailed Documentation:** See `streamlit/README.md` for complete setup and security guidelines.
+
+---
+
+## 🚀 Welcome to Z.ai Code Scaffold
 
 A modern, production-ready web application scaffold powered by cutting-edge technologies, designed to accelerate your development with [Z.ai](https://chat.z.ai)'s AI-powered coding assistance.
 

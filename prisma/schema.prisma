@@ -14,11 +14,145 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  role          String   @default("user")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  createdProjects Project[] @relation("ProjectCreator")
+  
+  @@map("users")
+}
+
+model Organisation {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  industry    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  projects Project[]
+  
+  @@map("organisations")
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  organisationId  String
+  createdBy       String
+  status          String   @default("draft")
+  scopeRaw        String?  @map("scope_raw")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  organisation Organisation @relation(fields: [organisationId], references: [id])
+  creator      User        @relation("ProjectCreator", fields: [createdBy], references: [id])
+  esgDataPoints ESGDataPoint[]
+  tcfdAssessments TCFDAssessment[]
+  csrdAssessments CSRDSssessment[]
+  griAssessments GRIAssessment[]
+  sasbAssessments SASBAssessment[]
+  
+  @@index([organisationId])
+  @@index([createdBy])
+  @@index([status, createdAt])
+  @@map("projects")
+}
+
+model ESGDataPoint {
+  id               String   @id @default(cuid())
+  projectId        String
+  category         String
+  year             Int
+  period           String
+  metricName       String   @map("metric_name")
+  metricValue      Float    @map("metric_value")
+  metricUnit       String?  @map("metric_unit")
+  source           String?
+  notes            String?
+  validationStatus String   @default("pending") @map("validation_status")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  project Project @relation(fields: [projectId], references: [id])
+  
+  @@index([projectId, category])
+  @@index([year, period])
+  @@index([validationStatus])
+  @@map("esg_data_points")
+}
+
+model TCFDAssessment {
+  id              String   @id @default(cuid())
+  projectId       String
+  governance      String?
+  strategy        String?
+  riskManagement  String?  @map("risk_management")
+  metricsTargets  String?  @map("metrics_targets")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  project Project @relation(fields: [projectId], references: [id])
+  
+  @@unique([projectId])
+  @@map("tcfd_assessments")
+}
+
+model CSRDSssessment {
+  id              String   @id @default(cuid())
+  projectId       String
+  envImpact       String?  @map("env_impact")
+  envFinancial    String?  @map("env_financial")
+  socialImpact    String?  @map("social_impact")
+  socialFinancial String?  @map("social_financial")
+  esrsCompliance  String?  @map("esrs_compliance")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  project Project @relation(fields: [projectId], references: [id])
+  
+  @@unique([projectId])
+  @@map("csrd_assessments")
+}
+
+model GRIAssessment {
+  id             String   @id @default(cuid())
+  projectId      String
+  assessmentData String?  @map("assessment_data")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  project Project @relation(fields: [projectId], references: [id])
+  
+  @@unique([projectId])
+  @@map("gri_assessments")
+}
+
+model SASBAssessment {
+  id          String   @id @default(cuid())
+  projectId   String
+  industry    String?
+  metricsData String?  @map("metrics_data")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  project Project @relation(fields: [projectId], references: [id])
+  
+  @@unique([projectId])
+  @@map("sasb_assessments")
 }
 
 model Post {
