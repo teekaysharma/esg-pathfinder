@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { hashPassword, verifyPassword, generateToken } from '@/lib/auth'
+import { verifyPassword, generateToken } from '@/lib/auth-utils'
 import { loginSchema } from '@/lib/validations'
 import { withAuthRateLimit } from '@/lib/security-middleware'
 

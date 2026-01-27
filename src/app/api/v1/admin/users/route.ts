@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAdminAuth, AuthenticatedRequest } from '@/lib/middleware'
 import { createUserSchema } from '@/lib/validations'
-import { hashPassword } from '@/lib/auth'
+import { hashPassword } from '@/lib/auth-utils'
 
 async function handler(req: AuthenticatedRequest) {
   try {

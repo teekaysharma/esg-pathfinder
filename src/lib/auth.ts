@@ -4,8 +4,6 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { db } from './db'
 import { verifyPassword, JWT_SECRET } from './auth-utils'
 
-export * from './auth-utils'
-
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({

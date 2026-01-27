@@ -72,7 +72,7 @@ export function createRateLimit(config: Partial<RateLimitConfig> = {}) {
     entry.count++
 
     // Check if limit exceeded
-    if (entry.count > finalConfig.maxRequests) {
+    if (entry.count > (finalConfig.maxRequests || 100)) {
       const resetTimeSeconds = Math.ceil((entry.resetTime - now) / 1000)
       
       return NextResponse.json(
@@ -174,9 +174,10 @@ export function withRateLimit(rateLimiter: ReturnType<typeof createRateLimit>, g
       const key = getRateLimitKey(req, userId)
       const entry = rateLimitStore.get(key)
       if (entry && response.status < 400) {
-        const remaining = Math.max(0, rateLimiter.maxRequests - entry.count)
+        const limit = (rateLimiter as any).maxRequests || 100
+        const remaining = Math.max(0, limit - entry.count)
         
-        response.headers.set('X-RateLimit-Limit', rateLimiter.maxRequests.toString())
+        response.headers.set('X-RateLimit-Limit', limit.toString())
         response.headers.set('X-RateLimit-Remaining', remaining.toString())
         response.headers.set('X-RateLimit-Reset', entry.resetTime.toString())
       }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken, extractTokenFromHeader } from './auth'
+import { verifyToken, extractTokenFromHeader } from './auth-utils'
 import { UserRole } from '@prisma/client'
 
 export interface AuthenticatedRequest extends NextRequest {

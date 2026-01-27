@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { hashPassword, generateToken } from '@/lib/auth'
+import { hashPassword, generateToken } from '@/lib/auth-utils'
 import { registerSchema } from '@/lib/validations'
 
 export async function POST(request: NextRequest) {
