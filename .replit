@@ -37,3 +37,10 @@ externalPort = 80
 deploymentTarget = "autoscale"
 run = ["npm", "run", "start"]
 build = ["npm", "run", "build"]
+
+[userenv]
+
+[userenv.shared]
+NEXTAUTH_URL = "http://0.0.0.0:5000"
+JWT_SECRET = "a-very-long-and-secure-secret-for-jwt-authentication-32-chars-long"
+NEXTAUTH_SECRET = "another-very-long-and-secure-secret-for-nextauth-32-chars-long"
