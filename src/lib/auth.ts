@@ -1,14 +1,10 @@
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
 import { UserRole } from '@prisma/client'
 import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { db } from './db'
+import { verifyPassword, JWT_SECRET } from './auth-utils'
 
-// Secure JWT secret management
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-at-least-32-characters-long'
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h'
-const SALT_ROUNDS = 12
+export * from './auth-utils'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,7 +18,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null
         const user = await db.user.findUnique({ where: { email: credentials.email } })
         if (!user || !user.password) return null
-        const isValid = await bcrypt.compare(credentials.password, user.password)
+        const isValid = await verifyPassword(credentials.password, user.password)
         if (!isValid) return null
         return { id: user.id, email: user.email, name: user.name, role: user.role }
       }
@@ -46,37 +42,4 @@ export const authOptions: NextAuthOptions = {
       return session
     }
   }
-}
-
-export interface JWTPayload {
-  userId: string
-  email: string
-  role: UserRole
-}
-
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS)
-}
-
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return bcrypt.compare(password, hashedPassword)
-}
-
-export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
-}
-
-export function verifyToken(token: string): JWTPayload | null {
-  try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload
-  } catch (error) {
-    return null
-  }
-}
-
-export function extractTokenFromHeader(authHeader: string | undefined): string | null {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null
-  }
-  return authHeader.substring(7)
 }

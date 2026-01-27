@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimits, detectSuspiciousActivity, addSecurityHeaders, blockIP } from './rate-limit'
-import { verifyToken, extractTokenFromHeader } from './auth'
+import { verifyToken, extractTokenFromHeader } from './auth-utils'
 
 // Security middleware for API routes
 export function withSecurity(
