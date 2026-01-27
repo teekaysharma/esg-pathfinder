@@ -1,19 +1,14 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserRole } from '@prisma/client'
-import { NextAuthOptions } from 'next-auth'
+import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { db } from './db'
 
-// Secure JWT secret management - no hardcoded secrets
+// Secure JWT secret management
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-at-least-32-characters-long'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h'
 const SALT_ROUNDS = 12
-
-// Validate required environment variables on startup (only in production)
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  console.warn('Warning: JWT_SECRET environment variable is not set. Using fallback.')
-}
 
 export const authOptions: NextAuthOptions = {
   providers: [

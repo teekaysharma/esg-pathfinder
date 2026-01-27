@@ -13,7 +13,7 @@ export interface AuthenticatedRequest extends NextRequest {
 export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextResponse> | NextResponse) {
   return async (req: NextRequest): Promise<NextResponse> => {
     try {
-      const token = extractTokenFromHeader(req.headers.get('authorization'))
+      const token = extractTokenFromHeader(req.headers.get('authorization') || undefined)
       
       if (!token) {
         return NextResponse.json(
