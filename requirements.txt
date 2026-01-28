@@ -1,0 +1,6 @@
+streamlit>=1.40.0    # ✅ Latest with Python 3.13 support
+pandas>=2.2.0        # ✅ Python 3.13 compatible
+plotly>=5.24.0       # ✅ Latest stable
+requests>=2.32.0     # ✅ Latest version
+numpy>=1.26.0        # ✅ KEY FIX - Python 3.13 compatible
+python-dateutil>=2.8.2 # ✅ Updated

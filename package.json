@@ -1,0 +1,40 @@
+{
+  "name": "esg-pathfinder",
+  "version": "2.0.0",
+  "description": "ESG Pathfinder Platform - Complete ESG compliance management solution",
+  "main": "streamlit_app.py",
+  "scripts": {
+    "start": "streamlit run streamlit_app.py",
+    "dev": "streamlit run streamlit_app.py --server.port 8501",
+    "build": "echo 'Building for Streamlit Cloud...'",
+    "next:dev": "next dev",
+    "next:build": "next build",
+    "next:start": "next start"
+  },
+  "keywords": ["esg", "sustainability", "compliance", "streamlit", "nextjs", "typescript"],
+  "author": "ESG Pathfinder Team",
+  "license": "MIT",
+  "dependencies": {
+    "streamlit": "^1.40.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "next": "^14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teekaysharma/esg-pathfinder.git"
+  },
+  "streamlit": {
+    "mainPage": "streamlit_app.py",
+    "pythonVersion": "3.9+"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.9"
+  }
+}
