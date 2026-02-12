@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import ZAI from "z-ai-web-dev-sdk"
 
 interface ScopeParseRequest {
@@ -49,10 +50,10 @@ interface ScopeParseResponse {
   }
 }
 
-export async function POST(
-  request: NextRequest,
+const POSTHandler = async (
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
     const body = await request.json() as ScopeParseRequest
@@ -290,3 +291,5 @@ function createFallbackResponse(rawScope: string): ScopeParseResponse {
     }
   }
 }
+
+export const POST = withAuth(POSTHandler)

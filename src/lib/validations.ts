@@ -10,8 +10,7 @@ export const loginSchema = z.object({
 export const registerSchema = z.object({
   email: commonValidations.email,
   password: commonValidations.password,
-  name: commonValidations.safeText(2, 100),
-  role: commonValidations.userRole.optional()
+  name: commonValidations.safeText(2, 100)
 })
 
 export const createUserSchema = z.object({

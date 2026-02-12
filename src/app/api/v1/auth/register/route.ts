@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { hashPassword, generateToken } from '@/lib/auth-utils'
 import { registerSchema } from '@/lib/validations'
+import { withRegisterSecurity } from '@/lib/security-middleware'
 
-export async function POST(request: NextRequest) {
+const registerHandler = async (request: NextRequest) => {
   try {
     const body = await request.json()
-    
+
     // Validate input
     const validatedData = registerSchema.parse(body)
-    const { email, password, name, role } = validatedData
+    const { email, password, name } = validatedData
 
     // Check if user already exists
     const existingUser = await db.user.findUnique({
@@ -26,13 +27,13 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password)
 
-    // Create user
+    // Create user - self-registration is always viewer
     const user = await db.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
-        role: role || 'VIEWER'
+        role: 'VIEWER'
       },
       select: {
         id: true,
@@ -61,15 +62,24 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       user,
       token,
       message: 'Registration successful'
     }, { status: 201 })
 
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24,
+    })
+
+    return response
   } catch (error) {
     console.error('Registration error:', error)
-    
+
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
         { error: 'Invalid input data', details: error.message },
@@ -83,3 +93,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withRegisterSecurity(registerHandler)

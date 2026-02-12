@@ -74,11 +74,21 @@ const loginHandler = async (request: NextRequest) => {
     // Return user data and token (excluding password)
     const { password: _, ...userWithoutPassword } = user
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: userWithoutPassword,
       token,
       message: 'Login successful'
     })
+
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24,
+    })
+
+    return response
 
   } catch (error) {
     console.error('Login error:', error)

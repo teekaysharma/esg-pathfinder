@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import ZAI from "z-ai-web-dev-sdk"
 
 interface ReportGenerationRequest {
@@ -132,10 +133,10 @@ const XBRL_TAXONOMY = {
   }
 }
 
-export async function POST(
-  request: NextRequest,
+const POSTHandler = async (
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
     const body = await request.json() as ReportGenerationRequest
@@ -477,3 +478,5 @@ function createFallbackReportContent(project: any, materialityData: any) {
     }
   }
 }
+
+export const POST = withAuth(POSTHandler)

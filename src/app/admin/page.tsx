@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -186,16 +186,18 @@ export default function AdminDashboard() {
   })
 
   // Fetch system stats on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     fetchSystemStats()
   }, [])
 
   const fetchSystemStats = async () => {
     try {
+      const headers: Record<string, string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
       const response = await fetch('/api/v1/admin/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include',
+        headers
       })
       if (response.ok) {
         const data = await response.json()
@@ -215,12 +217,13 @@ export default function AdminDashboard() {
 
   const handleCreateUser = async () => {
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
       const response = await fetch('/api/v1/admin/users', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers,
         body: JSON.stringify({
           ...newUser,
           password: 'TempPassword123!' // In production, this should be generated and emailed

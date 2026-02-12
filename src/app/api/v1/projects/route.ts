@@ -5,11 +5,13 @@ import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import { UserRole } from "@prisma/client"
 import { createProjectSchema, querySchemas } from "@/lib/validations"
 import { Logger, handleApiError, createError, withRequestTiming } from "@/lib/logger"
+import { userCanCreateForOrganisation } from "@/lib/project-auth"
 
 const logger = new Logger('PROJECTS_API')
 
 const createProjectHandler = withRequestTiming(async (req: AuthenticatedRequest) => {
   const requestId = logger.logAPIRequest(req, req.user?.userId)
+  const startTime = Date.now()
 
   try {
     const body = await req.json()
@@ -27,6 +29,14 @@ const createProjectHandler = withRequestTiming(async (req: AuthenticatedRequest)
 
     if (!organisation) {
       throw createError.notFound('Organization', validatedData.organisationId)
+    }
+
+    const canCreate = await userCanCreateForOrganisation(req.user!, validatedData.organisationId)
+    if (!canCreate) {
+      return NextResponse.json(
+        { error: "Insufficient permissions for organization" },
+        { status: 403 }
+      )
     }
 
     // Create project with authenticated user as creator
@@ -77,7 +87,7 @@ const createProjectHandler = withRequestTiming(async (req: AuthenticatedRequest)
       message: "Project created successfully"
     })
 
-    logger.logAPIResponse(req, 201, Date.now() - Date.now())
+    logger.logAPIResponse(req, 201, Date.now() - startTime)
     return response
 
   } catch (error) {
