@@ -10,6 +10,7 @@ A comprehensive, production-ready ESG (Environmental, Social, and Governance) co
 - **🌍 GRI** - Global Reporting Initiative Standards
 - **🏢 SASB** - Sustainability Accounting Standards Board
 - **📊 IFRS** - International Financial Reporting Standards (S1-S5)
+- **💎 RJC** - Responsible Jewellery Council Code of Practices & Chain-of-Custody
 
 ### 🤖 **AI-Powered Assessment**
 - **Z-AI SDK Integration** for intelligent compliance analysis
@@ -117,6 +118,7 @@ docker run -p 8501:8501 esg-pathfinder-streamlit
 - **GRI**: Universal Standards, Topic Standards, Sector Standards
 - **SASB**: Industry-specific standards and metrics
 - **IFRS**: S1-S5 Sustainability Standards
+- **RJC**: Responsible sourcing, chain-of-custody, labor/human-rights, and environmental compliance
 
 ### **📤 Data Collection**
 - **Automated Data Validation** with quality scoring
@@ -207,12 +209,16 @@ LOG_FILE_PATH="./logs/app.log"
 The platform now includes project-level readiness and collection endpoints to ensure all framework requirements can be prepared before final report generation:
 
 - `GET /api/v1/projects/{id}/standards/readiness`
-  - Returns coverage score per standard (`TCFD`, `CSRD`, `ISSB`, `IFRS`, `GRI`, `SASB`)
+  - Returns coverage score per standard (`TCFD`, `CSRD`, `ISSB`, `IFRS`, `GRI`, `SASB`, `RJC`)
   - Lists missing requirements and recommended next input steps
 
 - `GET /api/v1/projects/{id}/sasb/assessment`
 - `POST /api/v1/projects/{id}/sasb/assessment`
   - Stores/updates SASB industry mapping, metrics, disclosures, benchmark inputs, and gap analysis
+
+- `GET /api/v1/projects/{id}/rjc/assessment`
+- `POST /api/v1/projects/{id}/rjc/assessment`
+  - Captures RJC controls for governance/ethics, chain-of-custody, human-rights/labor, environmental performance, due diligence, and corrective actions
 
 These endpoints complement existing routes for:
 - TCFD: `/api/v1/projects/{id}/tcfd/assessment`
@@ -221,6 +227,7 @@ These endpoints complement existing routes for:
 - GRI: `/api/v1/projects/{id}/gri/assessment`, `/api/v1/projects/{id}/gri/metrics`
 - IFRS metrics: `/api/v1/projects/{id}/ifrs/metrics`
 - Shared data capture: `/api/v1/projects/{id}/data-points`, `/api/v1/projects/{id}/compliance-checks`, `/api/v1/projects/{id}/workflows`
+- RJC: `/api/v1/projects/{id}/rjc/assessment`
 
 ## 📚 Documentation
 

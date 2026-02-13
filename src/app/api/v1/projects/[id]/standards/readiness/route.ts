@@ -25,7 +25,7 @@ const GETHandler = async (
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    const [tcfd, csrd, issb, gri, sasb, dataPoints, complianceChecks, evidences, reports] = await Promise.all([
+    const [tcfd, csrd, issb, gri, sasb, dataPoints, complianceChecks, evidences, reports, workflows] = await Promise.all([
       db.tCFDAssessment.findUnique({ where: { projectId } }),
       db.cSRDAassessment.findUnique({ where: { projectId } }),
       db.iSSBAssessment.findUnique({ where: { projectId } }),
@@ -34,7 +34,8 @@ const GETHandler = async (
       db.eSGDataPoint.findMany({ where: { projectId }, select: { metricCode: true } }),
       db.complianceCheck.findMany({ where: { projectId }, select: { framework: true } }),
       db.evidence.count({ where: { projectId } }),
-      db.report.count({ where: { projectId } })
+      db.report.count({ where: { projectId } }),
+      db.workflow.count({ where: { projectId } })
     ])
 
     const readiness = buildStandardsReadiness({
@@ -47,7 +48,8 @@ const GETHandler = async (
       dataPointCodes: dataPoints.map(d => d.metricCode),
       complianceFrameworks: complianceChecks.map(c => c.framework.toUpperCase()),
       evidenceCount: evidences,
-      reportCount: reports
+      reportCount: reports,
+      workflowCount: workflows
     })
 
     const overallScore = Math.round(

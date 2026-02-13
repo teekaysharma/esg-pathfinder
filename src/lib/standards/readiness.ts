@@ -1,6 +1,6 @@
 import { Project, TCFDAssessment, CSRDAassessment, ISSBAssessment, GRIAssessment, SASBAssessment } from '@prisma/client'
 
-export type StandardName = 'TCFD' | 'CSRD' | 'ISSB' | 'IFRS' | 'GRI' | 'SASB'
+export type StandardName = 'TCFD' | 'CSRD' | 'ISSB' | 'IFRS' | 'GRI' | 'SASB' | 'RJC'
 
 export interface StandardReadiness {
   standard: StandardName
@@ -22,6 +22,7 @@ interface BuildInput {
   complianceFrameworks: string[]
   evidenceCount: number
   reportCount: number
+  workflowCount: number
 }
 
 function calcStatus(score: number): StandardReadiness['status'] {
@@ -75,6 +76,15 @@ export function buildStandardsReadiness(input: BuildInput): StandardReadiness[] 
     { key: 'SASB tagged datapoints', ok: input.dataPointCodes.some(c => c.startsWith('SASB_')) }
   ]
 
+
+  const rjcReq = [
+    { key: 'RJC governance & ethics policy', ok: input.complianceFrameworks.includes('RJC') },
+    { key: 'Chain of custody controls', ok: input.dataPointCodes.some(c => c.startsWith('RJC_COC_')) },
+    { key: 'Human rights and labor controls', ok: input.dataPointCodes.some(c => c.startsWith('RJC_HR_')) },
+    { key: 'Environmental management controls', ok: input.dataPointCodes.some(c => c.startsWith('RJC_ENV_')) },
+    { key: 'Corrective action workflow/evidence', ok: input.workflowCount > 0 && input.evidenceCount > 0 }
+  ]
+
   const ifrsReq = [
     { key: 'IFRS S1/S2 readiness', ok: !!input.issb?.ifrsS1 && !!input.issb?.ifrsS2 },
     { key: 'IFRS metric datapoints', ok: input.dataPointCodes.some(c => c.startsWith('IFRS_')) },
@@ -89,7 +99,8 @@ export function buildStandardsReadiness(input: BuildInput): StandardReadiness[] 
     { standard: 'ISSB', req: issbReq, inputs: ['issb_assessment', 'ifrs_metrics', 'climate_data'], supported: true },
     { standard: 'IFRS', req: ifrsReq, inputs: ['issb_assessment', 'ifrs_metrics', 'compliance_checks'], supported: true },
     { standard: 'GRI', req: griReq, inputs: ['gri_assessment', 'gri_metrics', 'disclosures'], supported: true },
-    { standard: 'SASB', req: sasbReq, inputs: ['sasb_assessment', 'sasb_metrics', 'disclosures'], supported: true }
+    { standard: 'SASB', req: sasbReq, inputs: ['sasb_assessment', 'sasb_metrics', 'disclosures'], supported: true },
+    { standard: 'RJC', req: rjcReq, inputs: ['rjc_assessment', 'compliance_checks', 'esg_data_points', 'workflows', 'evidence'], supported: true }
   ]
 
   return standards.map(({ standard, req, inputs, supported }) => {
