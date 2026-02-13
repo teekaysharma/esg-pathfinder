@@ -53,6 +53,10 @@ export default function ProjectWorkspace() {
   const [acceptedSuggestions, setAcceptedSuggestions] = useState<any>({})
   const [structuredScope, setStructuredScope] = useState<any>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [readinessSummary, setReadinessSummary] = useState<any>(null)
+  const [latestReport, setLatestReport] = useState<any>(null)
+  const [isLoadingMvpData, setIsLoadingMvpData] = useState(false)
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
 
   const headers = useMemo(() => {
     const authHeaders: Record<string, string> = {}
@@ -92,6 +96,43 @@ export default function ProjectWorkspace() {
   }, [headers])
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId)
+
+  const loadMvpData = async (projectId: string) => {
+    try {
+      setIsLoadingMvpData(true)
+
+      const [readinessResponse, reportsResponse] = await Promise.all([
+        fetch(`/api/v1/projects/${projectId}/standards/readiness`, {
+          credentials: 'include',
+          headers
+        }),
+        fetch(`/api/v1/reports?projectId=${projectId}`, {
+          credentials: 'include',
+          headers
+        })
+      ])
+
+      if (readinessResponse.ok) {
+        const readinessData = await readinessResponse.json()
+        setReadinessSummary(readinessData.data)
+      }
+
+      if (reportsResponse.ok) {
+        const reportsData = await reportsResponse.json()
+        setLatestReport((reportsData.data || [])[0] || null)
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to load project readiness')
+    } finally {
+      setIsLoadingMvpData(false)
+    }
+  }
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadMvpData(selectedProjectId)
+    }
+  }, [selectedProjectId])
 
   const handleAnalyzeScope = async () => {
     if (!rawScope.trim() || !selectedProjectId) return
@@ -154,6 +195,38 @@ export default function ProjectWorkspace() {
       createdAt: new Date().toISOString()
     }
     setStructuredScope(scope)
+  }
+
+  const handleGenerateReport = async () => {
+    if (!selectedProjectId) return
+
+    try {
+      setIsGeneratingReport(true)
+      const response = await fetch(`/api/v1/projects/${selectedProjectId}/report/generate`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
+        body: JSON.stringify({
+          format: 'json',
+          includeXBRL: true,
+          sections: ['executive_summary', 'environmental', 'social', 'governance']
+        })
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Failed to generate report' }))
+        throw new Error(err.error || 'Failed to generate report')
+      }
+
+      await loadMvpData(selectedProjectId)
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to generate report')
+    } finally {
+      setIsGeneratingReport(false)
+    }
   }
 
   const getConfidenceColor = (confidence: number) => {
@@ -232,6 +305,40 @@ export default function ProjectWorkspace() {
             <AlertDescription className="text-red-700">{errorMessage}</AlertDescription>
           </Alert>
         )}
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>MVP Progress Snapshot</span>
+              <Button size="sm" variant="outline" onClick={() => selectedProjectId && loadMvpData(selectedProjectId)} disabled={!selectedProjectId || isLoadingMvpData}>
+                {isLoadingMvpData ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
+              </Button>
+            </CardTitle>
+            <CardDescription>Quick view of readiness and report generation for the selected project.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-4">
+            <div className="rounded-md border p-4">
+              <div className="text-sm text-slate-500">Overall readiness</div>
+              <div className="text-2xl font-bold">{readinessSummary?.overallScore ?? 0}%</div>
+              <p className="text-xs text-slate-500 mt-1">{readinessSummary?.standards?.length ?? 0} standards evaluated</p>
+            </div>
+            <div className="rounded-md border p-4">
+              <div className="text-sm text-slate-500">Reports generated</div>
+              <div className="text-2xl font-bold">{readinessSummary?.generatedReports ?? 0}</div>
+              <p className="text-xs text-slate-500 mt-1">Latest: {latestReport ? `v${latestReport.version}` : 'none yet'}</p>
+            </div>
+            <div className="rounded-md border p-4 space-y-2">
+              <Button className="w-full" onClick={handleGenerateReport} disabled={!selectedProjectId || isGeneratingReport}>
+                {isGeneratingReport ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}Generate Report
+              </Button>
+              {latestReport && (
+                <a href={`/api/v1/reports/${latestReport.id}/download/json`}>
+                  <Button className="w-full" variant="outline">Download Latest JSON</Button>
+                </a>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="scope" className="space-y-6">
           <TabsList className="grid w-full grid-cols-11">
