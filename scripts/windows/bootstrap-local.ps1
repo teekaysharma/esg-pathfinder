@@ -4,6 +4,7 @@ Param(
   [string]$DbName = "esg_pathfinder",
   [string]$DbUser = "esg_user",
   [string]$DbPassword = "esg_password",
+  [string]$AdminUser = "postgres",
   [string]$AdminDatabase = "postgres",
   [switch]$SkipDev
 )
@@ -77,21 +78,19 @@ END
 $$;
 "@
 
-$createDbSql = @"
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DbName') THEN
-    CREATE DATABASE $DbName OWNER $DbUser;
-  END IF;
-END
-$$;
-"@
-
 $grantSql = "GRANT ALL PRIVILEGES ON DATABASE $DbName TO $DbUser;"
 
-psql -h $DbHost -p $DbPort -d $AdminDatabase -v ON_ERROR_STOP=1 -c $createRoleSql
-psql -h $DbHost -p $DbPort -d $AdminDatabase -v ON_ERROR_STOP=1 -c $createDbSql
-psql -h $DbHost -p $DbPort -d $AdminDatabase -v ON_ERROR_STOP=1 -c $grantSql
+psql -h $DbHost -p $DbPort -U $AdminUser -d $AdminDatabase -v ON_ERROR_STOP=1 -c $createRoleSql
+
+$dbExists = (psql -h $DbHost -p $DbPort -U $AdminUser -d $AdminDatabase -tAc "SELECT 1 FROM pg_database WHERE datname = '$DbName'").Trim()
+if ($dbExists -ne "1") {
+  Write-Host "Creating database '$DbName' owned by '$DbUser'"
+  psql -h $DbHost -p $DbPort -U $AdminUser -d $AdminDatabase -v ON_ERROR_STOP=1 -c "CREATE DATABASE $DbName OWNER $DbUser;"
+} else {
+  Write-Host "Database '$DbName' already exists"
+}
+
+psql -h $DbHost -p $DbPort -U $AdminUser -d $AdminDatabase -v ON_ERROR_STOP=1 -c $grantSql
 
 Write-Step "Installing npm dependencies"
 npm install
@@ -100,7 +99,7 @@ Write-Step "Applying Prisma schema"
 npm run db:push
 
 Write-Step "Seeding default admin user"
-npm run db:setup:local
+npx tsx seed-admin.ts
 
 Write-Host "`nBootstrap complete." -ForegroundColor Green
 Write-Host "Login: admin@esgpathfinder.com / Admin123!" -ForegroundColor Green

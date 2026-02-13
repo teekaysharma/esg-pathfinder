@@ -24,7 +24,7 @@ npm run bootstrap:windows
 - Creates or updates role/database in PostgreSQL
 - Runs `npm install`
 - Runs `npm run db:push`
-- Runs `npm run db:setup:local`
+- Runs `npx tsx seed-admin.ts`
 - Starts app with `npm run dev`
 
 ## Credentials after setup
@@ -38,7 +38,7 @@ npm run bootstrap:windows:skipdev
 
 # Direct script call with custom DB settings
 powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 `
-  -DbHost localhost -DbPort 5432 -DbName esg_pathfinder -DbUser esg_user -DbPassword esg_password
+  -DbHost localhost -DbPort 5432 -DbName esg_pathfinder -DbUser esg_user -DbPassword esg_password -AdminUser postgres
 ```
 
 ## Note about PostgreSQL admin password

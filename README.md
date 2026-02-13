@@ -183,7 +183,7 @@ npm run bootstrap:windows
 This startup tool will:
 - Verify `node`, `npm`, and `psql` are available
 - Create/update `.env` and `.env.local`
-- Provision PostgreSQL role/database (`esg_user` / `esg_pathfinder` by default)
+- Provision PostgreSQL role/database (`esg_user` / `esg_pathfinder` by default) using your local PostgreSQL server (no Docker)
 - Install npm dependencies
 - Run Prisma schema push + local seed
 - Start the app (`npm run dev`)
@@ -195,7 +195,7 @@ npm run bootstrap:windows:skipdev
 
 # Or run script directly with custom DB values
 powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 `
-  -DbHost localhost -DbPort 5432 -DbName esg_pathfinder -DbUser esg_user -DbPassword esg_password
+  -DbHost localhost -DbPort 5432 -DbName esg_pathfinder -DbUser esg_user -DbPassword esg_password -AdminUser postgres
 ```
 
 If your postgres admin account requires a password, set `PGPASSWORD` before running the script.
