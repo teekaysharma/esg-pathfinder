@@ -340,6 +340,44 @@ export default function ProjectWorkspace() {
           </CardContent>
         </Card>
 
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Standards Readiness Breakdown</CardTitle>
+            <CardDescription>Track framework-by-framework coverage and focus remediation work on missing requirements.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {readinessSummary?.standards?.length ? (
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-3">
+                  {readinessSummary.standards.map((item: any) => (
+                    <div key={item.standard} className="rounded-md border p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium">{item.standard}</span>
+                        <Badge variant={item.status === 'READY' ? 'default' : 'secondary'}>{item.status}</Badge>
+                      </div>
+                      <div className="text-sm text-slate-600">Coverage: {item.coverageScore}%</div>
+                      <div className="text-xs text-slate-500 mt-1">Missing: {item.missingRequirements.length}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {readinessSummary.nextSteps?.length > 0 && (
+                  <div className="rounded-md border p-3 bg-amber-50/60">
+                    <h4 className="font-medium mb-2">Priority next steps</h4>
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
+                      {readinessSummary.nextSteps.slice(0, 5).map((step: any, idx: number) => (
+                        <li key={`${step.standard}-${idx}`}>{step.standard}: {step.missing.join(', ') || 'Complete remaining disclosures'}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">No readiness data yet. Start by analyzing scope and capturing framework assessments.</p>
+            )}
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="scope" className="space-y-6">
           <TabsList className="grid w-full grid-cols-11">
             <TabsTrigger value="scope">Scope Definition</TabsTrigger>
