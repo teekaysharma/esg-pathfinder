@@ -171,11 +171,12 @@ const getActionIcon = (action: string) => {
 }
 
 export default function AdminDashboard() {
-  const { user, token } = useAuth()
+  const { user, token, isAuthenticated, isAdmin, isLoading: authLoading } = useAuth()
   const [users, setUsers] = useState(mockUsers)
   const [auditLogs, setAuditLogs] = useState(mockAuditLogs)
   const [systemStats, setSystemStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false)
   const [newUser, setNewUser] = useState({
@@ -187,8 +188,13 @@ export default function AdminDashboard() {
 
   // Fetch system stats on component mount
   useEffect(() => {
-    fetchSystemStats()
-  }, [])
+    if (!authLoading && isAuthenticated && isAdmin) {
+      fetchSystemStats()
+    }
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      setLoading(false)
+    }
+  }, [authLoading, isAuthenticated, isAdmin])
 
   const fetchSystemStats = async () => {
     try {
@@ -202,6 +208,10 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json()
         setSystemStats(data.stats)
+        setErrorMessage(null)
+      } else if (response.status !== 401 && response.status !== 403) {
+        const err = await response.json().catch(() => ({ error: 'Failed to fetch system stats' }))
+        setErrorMessage(err.error || 'Failed to fetch system stats')
       }
     } catch (error) {
       console.error('Error fetching system stats:', error)
@@ -313,6 +323,14 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">System Administration</h1>
           <p className="text-slate-600 dark:text-slate-400">Manage users, monitor system activity, and configure platform settings</p>
         </div>
+
+        {errorMessage && (
+          <Alert className="border-red-200 bg-red-50">
+            <AlertDescription className="text-red-700">
+              {errorMessage}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">

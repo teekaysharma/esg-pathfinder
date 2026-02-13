@@ -1,9 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { withAdminAuth, AuthenticatedRequest } from '@/lib/middleware'
 
 async function handler(req: AuthenticatedRequest) {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({
+        stats: {
+          totalUsers: 0,
+          activeUsers: 0,
+          totalProjects: 0,
+          activeProjects: 0,
+          totalReports: 0,
+          totalOrganisations: 0,
+          systemUptime: 'unknown',
+          databaseSize: 'unavailable',
+          lastBackup: null,
+          esgAssessments: { tcfd: 0, csrd: 0, gri: 0, issb: 0, sasb: 0, total: 0 },
+          dataPoints: { total: 0, byCategory: {} },
+          complianceChecks: { total: 0, byStatus: {} },
+          recentActivity: [],
+          warning: 'Database is not configured. Set DATABASE_URL to enable admin analytics.'
+        }
+      })
+    }
+
     const [
       totalUsers,
       activeUsers,
@@ -106,9 +128,9 @@ async function handler(req: AuthenticatedRequest) {
       // Recent Activity
       recentActivity: recentActivity.map(log => ({
         id: log.id,
-        user: log.user.name,
+        user: log.user?.name || log.user?.email || "System",
         action: log.action,
-        detail: log.detailJson,
+        detail: log.detailJson || {},
         timestamp: log.timestamp
       }))
     }
@@ -116,6 +138,32 @@ async function handler(req: AuthenticatedRequest) {
     return NextResponse.json({ stats })
   } catch (error) {
     console.error('Error fetching system stats:', error)
+
+    const isDbInitError =
+      error instanceof Prisma.PrismaClientInitializationError ||
+      (error instanceof Error && error.message.includes('DATABASE_URL'))
+
+    if (isDbInitError) {
+      return NextResponse.json({
+        stats: {
+          totalUsers: 0,
+          activeUsers: 0,
+          totalProjects: 0,
+          activeProjects: 0,
+          totalReports: 0,
+          totalOrganisations: 0,
+          systemUptime: 'unknown',
+          databaseSize: 'unavailable',
+          lastBackup: null,
+          esgAssessments: { tcfd: 0, csrd: 0, gri: 0, issb: 0, sasb: 0, total: 0 },
+          dataPoints: { total: 0, byCategory: {} },
+          complianceChecks: { total: 0, byStatus: {} },
+          recentActivity: [],
+          warning: 'Database is not configured. Set DATABASE_URL to enable admin analytics.'
+        }
+      })
+    }
+
     return NextResponse.json(
       { error: 'Failed to fetch system stats' },
       { status: 500 }
