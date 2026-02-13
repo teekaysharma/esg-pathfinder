@@ -24,7 +24,7 @@ interface AuthContextType {
   token: string | null
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   register: (email: string, password: string, name: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>
-  logout: () => void
+  logout: () => Promise<void>
   isLoading: boolean
   isAuthenticated: boolean
   hasRole: (role: UserRole) => boolean
@@ -114,10 +114,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    setToken(null)
-    document.cookie = 'auth_token=; Max-Age=0; path=/'
+  const logout = async () => {
+    try {
+      await fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setUser(null)
+      setToken(null)
+      document.cookie = 'auth_token=; Max-Age=0; path=/'
+    }
   }
 
   const hasRole = (role: UserRole): boolean => {
