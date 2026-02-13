@@ -100,10 +100,10 @@ export default function Dashboard() {
               <span className="text-xl font-bold text-slate-900 dark:text-white">ESG Pathfinder</span>
             </div>
             <nav className="hidden md:flex space-x-6">
-              <a href="#" className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium">Dashboard</a>
-              <a href="#" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Projects</a>
-              <a href="#" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Reports</a>
-              <a href="#" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Settings</a>
+              <Link href="/dashboard" className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium">Dashboard</Link>
+              <Link href="/project" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Projects</Link>
+              <Link href="/reports" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Reports</Link>
+              <Link href="/settings" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Settings</Link>
             </nav>
           </div>
           
@@ -116,10 +116,10 @@ export default function Dashboard() {
                 </Button>
               </Link>
             )}
-            <Button variant="outline" size="sm">
+            <Link href="/settings"><Button variant="outline" size="sm">
               <Settings className="h-4 w-4 mr-2" />
               Settings
-            </Button>
+            </Button></Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">

@@ -123,4 +123,4 @@ async function handler(req: AuthenticatedRequest) {
   }
 }
 
-export const GET = withAdminAuth(handler)
+export const GET = withAdminAuth()(handler)
