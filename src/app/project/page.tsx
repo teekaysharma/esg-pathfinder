@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -37,86 +38,91 @@ import {
   Clock
 } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
+import { ProtectedRoute } from "@/components/protected-route"
 
-// Mock data for scope parsing suggestions
-const mockScopeSuggestions = {
-  entities: [
-    {
-      name: "TechCorp Inc.",
-      type: "company",
-      confidence: 0.95,
-      suggestions: ["TechCorp Inc.", "TechCorp Incorporated", "TechCorp"]
-    },
-    {
-      name: "Manufacturing Division",
-      type: "division",
-      confidence: 0.87,
-      suggestions: ["Manufacturing Division", "Production Unit", "Manufacturing Unit"]
-    }
-  ],
-  activities: [
-    {
-      name: "Software Development",
-      type: "primary",
-      confidence: 0.92,
-      suggestions: ["Software Development", "IT Services", "Technology Development"]
-    },
-    {
-      name: "Cloud Infrastructure",
-      type: "supporting",
-      confidence: 0.78,
-      suggestions: ["Cloud Infrastructure", "Data Centers", "IT Infrastructure"]
-    }
-  ],
-  geographies: [
-    {
-      name: "United States",
-      type: "country",
-      confidence: 0.98,
-      suggestions: ["United States", "USA", "US"]
-    },
-    {
-      name: "European Union",
-      type: "region",
-      confidence: 0.85,
-      suggestions: ["European Union", "EU", "Europe"]
-    }
-  ],
-  standards: [
-    {
-      name: "GRI Standards",
-      type: "framework",
-      confidence: 0.94,
-      clause: "GRI 1-3",
-      suggestions: ["GRI Standards", "Global Reporting Initiative", "GRI"]
-    },
-    {
-      name: "SASB Technology & Services",
-      type: "sector-specific",
-      confidence: 0.89,
-      clause: "SASB TC-AC-130a",
-      suggestions: ["SASB Technology & Services", "SASB Tech", "SASB Software"]
-    }
-  ]
-}
+type ProjectOption = { id: string; name: string; status: string }
 
 export default function ProjectWorkspace() {
+  const { token } = useAuth()
+  const [projects, setProjects] = useState<ProjectOption[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("")
   const [rawScope, setRawScope] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [suggestions, setSuggestions] = useState<any>(null)
   const [acceptedSuggestions, setAcceptedSuggestions] = useState<any>({})
   const [structuredScope, setStructuredScope] = useState<any>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const headers = useMemo(() => {
+    const authHeaders: Record<string, string> = {}
+    if (token) authHeaders.Authorization = `Bearer ${token}`
+    return authHeaders
+  }, [token])
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const response = await fetch('/api/v1/projects?limit=100', {
+          credentials: 'include',
+          headers
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to load projects')
+        }
+
+        const data = await response.json()
+        const items = (data.data || []).map((project: any) => ({
+          id: project.id,
+          name: project.name,
+          status: project.status
+        }))
+
+        setProjects(items)
+        if (items.length > 0) {
+          setSelectedProjectId(items[0].id)
+        }
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : 'Failed to load projects')
+      }
+    }
+
+    loadProjects()
+  }, [headers])
+
+  const selectedProject = projects.find((project) => project.id === selectedProjectId)
 
   const handleAnalyzeScope = async () => {
-    if (!rawScope.trim()) return
-    
+    if (!rawScope.trim() || !selectedProjectId) return
+
     setIsAnalyzing(true)
-    
-    // Simulate API call
-    setTimeout(() => {
-      setSuggestions(mockScopeSuggestions)
+    setErrorMessage(null)
+
+    try {
+      const response = await fetch(`/api/v1/projects/${selectedProjectId}/scope/parse`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
+        body: JSON.stringify({ rawScope })
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Failed to analyze scope' }))
+        throw new Error(err.error || 'Failed to analyze scope')
+      }
+
+      const data = await response.json()
+      setSuggestions(data.data)
+      setAcceptedSuggestions({})
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to analyze scope')
+    } finally {
       setIsAnalyzing(false)
-    }, 2000)
+    }
   }
 
   const handleAcceptSuggestion = (category: string, index: number) => {
@@ -163,7 +169,8 @@ export default function ProjectWorkspace() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Header */}
       <header className="border-b bg-white dark:bg-slate-800">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -197,11 +204,21 @@ export default function ProjectWorkspace() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">TechCorp ESG Assessment 2024</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{selectedProject?.name || "Project Workspace"}</h1>
               <p className="text-slate-600 dark:text-slate-400">Define project scope and analyze regulatory requirements</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="outline">DRAFT</Badge>
+            <div className="flex items-center gap-4">
+              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                <SelectTrigger className="w-[280px] bg-white">
+                  <SelectValue placeholder="Select project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Badge variant="outline">{selectedProject?.status || "DRAFT"}</Badge>
               <Button onClick={handleSaveScope} disabled={!suggestions}>
                 <Save className="h-4 w-4 mr-2" />
                 Save Scope
@@ -209,6 +226,12 @@ export default function ProjectWorkspace() {
             </div>
           </div>
         </div>
+
+        {errorMessage && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertDescription className="text-red-700">{errorMessage}</AlertDescription>
+          </Alert>
+        )}
 
         <Tabs defaultValue="scope" className="space-y-6">
           <TabsList className="grid w-full grid-cols-11">
@@ -258,7 +281,7 @@ export default function ProjectWorkspace() {
 
                   <Button 
                     onClick={handleAnalyzeScope} 
-                    disabled={!rawScope.trim() || isAnalyzing}
+                    disabled={!rawScope.trim() || isAnalyzing || !selectedProjectId}
                     className="w-full"
                   >
                     {isAnalyzing ? (
@@ -2226,6 +2249,7 @@ export default function ProjectWorkspace() {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }
