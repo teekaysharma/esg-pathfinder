@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { hashPassword, generateToken } from '@/lib/auth-utils'
 import { registerSchema } from '@/lib/validations'
 import { withRegisterSecurity } from '@/lib/security-middleware'
+import { findDemoUserByEmail, upsertDemoUser } from '@/lib/local-mvp-store'
 
 const registerHandler = async (request: NextRequest) => {
   try {
@@ -11,6 +12,62 @@ const registerHandler = async (request: NextRequest) => {
     // Validate input
     const validatedData = registerSchema.parse(body)
     const { email, password, name } = validatedData
+
+
+    if (!process.env.DATABASE_URL) {
+      const existingDemoUser = findDemoUserByEmail(email)
+      if (existingDemoUser) {
+        return NextResponse.json(
+          { error: 'User with this email already exists' },
+          { status: 409 }
+        )
+      }
+
+      const now = new Date().toISOString()
+      const demoUser = {
+        id: `demo-user-${Date.now()}`,
+        email,
+        name,
+        role: 'VIEWER' as const,
+        isActive: true,
+        emailVerified: false,
+        createdAt: now,
+        updatedAt: now,
+        organisations: [{ id: 'demo-org-1', name: 'ESG Pathfinder Demo Org' }]
+      }
+
+      upsertDemoUser(demoUser as any)
+
+      const token = generateToken({
+        userId: demoUser.id,
+        email: demoUser.email,
+        role: demoUser.role
+      })
+
+      const response = NextResponse.json({
+        user: {
+          id: demoUser.id,
+          email: demoUser.email,
+          name: demoUser.name,
+          role: demoUser.role,
+          isActive: demoUser.isActive,
+          emailVerified: demoUser.emailVerified,
+          createdAt: demoUser.createdAt
+        },
+        token,
+        message: 'Registration successful (demo mode)'
+      }, { status: 201 })
+
+      response.cookies.set('auth_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24,
+      })
+
+      return response
+    }
 
     // Check if user already exists
     const existingUser = await db.user.findUnique({

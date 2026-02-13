@@ -6,6 +6,7 @@ import { UserRole } from "@prisma/client"
 import { createProjectSchema, querySchemas } from "@/lib/validations"
 import { Logger, handleApiError, createError, withRequestTiming } from "@/lib/logger"
 import { userCanCreateForOrganisation } from "@/lib/project-auth"
+import { createDemoProject, listDemoProjects } from '@/lib/local-mvp-store'
 
 const logger = new Logger('PROJECTS_API')
 
@@ -16,6 +17,31 @@ const createProjectHandler = withRequestTiming(async (req: AuthenticatedRequest)
   try {
     const body = await req.json()
     const validatedData = createProjectSchema.parse(body)
+
+
+    if (!process.env.DATABASE_URL) {
+      const project = createDemoProject({
+        name: validatedData.name,
+        organisationId: validatedData.organisationId,
+        createdBy: req.user!.userId,
+        scopeRaw: validatedData.scopeRaw
+      })
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          ...project,
+          organisation: { id: project.organisationId, name: project.organisationName },
+          creator: {
+            id: req.user!.userId,
+            email: req.user!.email,
+            name: req.user!.email.split('@')[0],
+            role: req.user!.role
+          }
+        },
+        message: 'Project created successfully (demo mode)'
+      })
+    }
 
     logger.info('Creating project', { 
       projectName: validatedData.name, 
@@ -111,6 +137,32 @@ const getProjectsHandler = async (req: AuthenticatedRequest) => {
     }
     
     const { organisationId, userId, page, limit } = queryValidation.data
+
+
+    if (!process.env.DATABASE_URL) {
+      const projects = listDemoProjects(req.user!.userId, req.user!.role)
+      return NextResponse.json({
+        success: true,
+        data: projects.map((p) => ({
+          ...p,
+          organisation: { id: p.organisationId, name: p.organisationName },
+          creator: {
+            id: p.createdBy,
+            email: req.user!.email,
+            name: req.user!.email.split('@')[0],
+            role: req.user!.role
+          },
+          _count: { reports: 0, evidences: 0, materialityMaps: 0 }
+        })),
+        pagination: {
+          page,
+          limit,
+          total: projects.length,
+          pages: 1
+        }
+      })
+    }
+
 
     let whereClause = {}
 

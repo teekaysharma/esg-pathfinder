@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import ZAI from "z-ai-web-dev-sdk"
+import { createDemoReport, getDemoProject } from "@/lib/local-mvp-store"
 
 interface ReportGenerationRequest {
   projectId: string
@@ -141,6 +142,41 @@ const POSTHandler = async (
     const projectId = params.id
     const body = await request.json() as ReportGenerationRequest
 
+
+    if (!process.env.DATABASE_URL) {
+      const demoProject = getDemoProject(projectId)
+      if (!demoProject) {
+        return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+      }
+
+      const reportContent = {
+        title: `${demoProject.name} ESG Report`,
+        generatedAt: new Date().toISOString(),
+        sections: [
+          { key: 'executive_summary', title: 'Executive Summary', content: 'Demo-mode report generated for local MVP validation.' },
+          { key: 'scope', title: 'Scope', content: demoProject.scopeRaw || 'Scope not captured yet.' }
+        ]
+      }
+
+      const xbrlContent = body.includeXBRL ? '<xbrl><report>Demo XBRL content</report></xbrl>' : undefined
+      const report = createDemoReport({ projectId, contentJson: reportContent, xbrlContent })
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          reportId: report.id,
+          version: report.version,
+          content: reportContent,
+          xbrlContent,
+          downloadUrls: {
+            json: `/api/v1/reports/${report.id}/download/json`,
+            xbrl: xbrlContent ? `/api/v1/reports/${report.id}/download/xbrl` : undefined
+          }
+        },
+        message: 'Report generated successfully (demo mode)'
+      })
+    }
+
     // Check if project exists
     const project = await db.project.findUnique({
       where: { id: projectId },
@@ -207,7 +243,7 @@ const POSTHandler = async (
     // Log the action
     await db.auditLog.create({
       data: {
-        actor: "system", // This should be the actual user ID
+        actor: request.user!.userId,
         action: "GENERATE_REPORT",
         detailJson: {
           projectId,

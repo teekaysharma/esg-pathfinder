@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
+import { findDemoUserById } from '@/lib/local-mvp-store'
 
 async function handler(req: AuthenticatedRequest) {
   try {
@@ -9,6 +10,19 @@ async function handler(req: AuthenticatedRequest) {
         { error: 'User not authenticated' },
         { status: 401 }
       )
+    }
+
+
+    if (!process.env.DATABASE_URL) {
+      const demoUser = findDemoUserById(req.user.userId)
+      if (!demoUser) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        )
+      }
+
+      return NextResponse.json({ user: demoUser })
     }
 
     const user = await db.user.findUnique({

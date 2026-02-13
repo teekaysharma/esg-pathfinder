@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
+import { findDemoUserById, upsertDemoUser } from '@/lib/local-mvp-store'
 
 interface UserPreferences {
   notifications?: {
@@ -24,6 +25,29 @@ function getPreferences(metadata: unknown): UserPreferences {
 
 async function getHandler(req: AuthenticatedRequest) {
   try {
+
+    if (!process.env.DATABASE_URL) {
+      const user = findDemoUserById(req.user!.userId)
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          profile: {
+            id: user.id,
+            email: user.email,
+            name: user.name || '',
+            role: user.role,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt
+          },
+          preferences: {}
+        }
+      })
+    }
+
     const user = await db.user.findUnique({
       where: { id: req.user!.userId },
       select: {
@@ -66,6 +90,31 @@ async function putHandler(req: AuthenticatedRequest) {
     const body = await req.json()
     const name = typeof body.name === 'string' ? body.name.trim() : undefined
     const preferences = body.preferences && typeof body.preferences === 'object' ? body.preferences : undefined
+
+
+    if (!process.env.DATABASE_URL) {
+      const user = findDemoUserById(req.user!.userId)
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+
+      const updated = { ...user, name: name ?? user.name, updatedAt: new Date().toISOString() }
+      upsertDemoUser(updated)
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          profile: {
+            id: updated.id,
+            email: updated.email,
+            name: updated.name || '',
+            role: updated.role,
+            updatedAt: updated.updatedAt
+          },
+          preferences: preferences || {}
+        }
+      })
+    }
 
     const existingUser = await db.user.findUnique({
       where: { id: req.user!.userId },

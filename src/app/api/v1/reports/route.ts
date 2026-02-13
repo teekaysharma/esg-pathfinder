@@ -2,11 +2,34 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
 import { UserRole } from '@prisma/client'
+import { getDemoProject, listDemoReports } from '@/lib/local-mvp-store'
 
 async function handler(req: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const projectId = searchParams.get('projectId') || undefined
+
+
+    if (!process.env.DATABASE_URL) {
+      const demoReports = listDemoReports(projectId)
+      const data = demoReports.map((report) => {
+        const project = getDemoProject(report.projectId)
+        return {
+          ...report,
+          project: {
+            id: project?.id || report.projectId,
+            name: project?.name || 'Demo Project',
+            status: project?.status || 'DRAFT',
+            organisation: {
+              id: project?.organisationId || 'demo-org-1',
+              name: project?.organisationName || 'ESG Pathfinder Demo Org'
+            }
+          }
+        }
+      })
+
+      return NextResponse.json({ success: true, data })
+    }
 
     const whereClause: Record<string, unknown> = {}
 
