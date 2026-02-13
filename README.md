@@ -171,8 +171,12 @@ If you already have PostgreSQL and npm on Windows, use the included bootstrap pa
 
 1. Download this branch as ZIP from GitHub and extract it.
 2. Open PowerShell in the extracted project root.
-3. Run:
+3. Run one of:
 ```powershell
+# easiest: double-click start.bat or run it from cmd
+.\start.bat
+
+# or run npm bootstrap directly
 npm run bootstrap:windows
 ```
 

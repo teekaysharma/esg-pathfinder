@@ -8,9 +8,13 @@ Use this when PostgreSQL and npm are already installed on your Windows machine.
 - Extract ZIP to a local folder.
 
 ## 2) Open PowerShell in project root
-Run:
+Run one of:
 
 ```powershell
+# easiest: double-click start.bat or run it from cmd
+.\start.bat
+
+# or run npm bootstrap directly
 npm run bootstrap:windows
 ```
 
