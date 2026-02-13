@@ -201,6 +201,27 @@ LOG_FILE_PATH="./logs/app.log"
 
 ⚠️ **Important**: `JWT_SECRET` is now required for security. Generate a secure random key (minimum 32 characters).
 
+
+### **Standards Readiness & Data Collection APIs**
+
+The platform now includes project-level readiness and collection endpoints to ensure all framework requirements can be prepared before final report generation:
+
+- `GET /api/v1/projects/{id}/standards/readiness`
+  - Returns coverage score per standard (`TCFD`, `CSRD`, `ISSB`, `IFRS`, `GRI`, `SASB`)
+  - Lists missing requirements and recommended next input steps
+
+- `GET /api/v1/projects/{id}/sasb/assessment`
+- `POST /api/v1/projects/{id}/sasb/assessment`
+  - Stores/updates SASB industry mapping, metrics, disclosures, benchmark inputs, and gap analysis
+
+These endpoints complement existing routes for:
+- TCFD: `/api/v1/projects/{id}/tcfd/assessment`
+- CSRD: `/api/v1/projects/{id}/csrd/assessment`
+- ISSB: `/api/v1/projects/{id}/issb/assessment`
+- GRI: `/api/v1/projects/{id}/gri/assessment`, `/api/v1/projects/{id}/gri/metrics`
+- IFRS metrics: `/api/v1/projects/{id}/ifrs/metrics`
+- Shared data capture: `/api/v1/projects/{id}/data-points`, `/api/v1/projects/{id}/compliance-checks`, `/api/v1/projects/{id}/workflows`
+
 ## 📚 Documentation
 
 - **[📖 CHANGELOG](./CHANGELOG.md)** - Version history and updates
