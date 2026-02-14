@@ -258,6 +258,7 @@ These endpoints complement existing routes for:
 - **[🚀 Deployment Guide](./DEPLOYMENT.md)** - Platform-specific deployment instructions
 - **[📚 API Documentation](./docs/api.md)** - Complete API reference
 - **[🧠 Standards Registry Contract](./docs/standards-registry-contract.md)** - Ingestion schema and admin API for framework knowledge
+- **[🧾 Standards CSV Templates](./templates/standards-ingestion/README.md)** - Offline template workflow for licensed/protected framework sources
 - **[🏢 Framework Guides](./docs/frameworks/)** - Individual framework documentation
 - **[🤝 Contributing Guide](./CONTRIBUTING.md)** - Development and contribution guidelines
 

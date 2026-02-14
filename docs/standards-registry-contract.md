@@ -62,3 +62,18 @@ Request body (example):
 ## Security
 - Admin-only via `withAdminAuth()` middleware.
 - Each ingestion is captured with creator, status, checksum, and counts in `StandardsIngestionJob`.
+
+## Offline template workflow (licensed sources)
+
+When standards sources are password-protected or under license, populate the local CSV templates and build one ingestion JSON payload.
+
+1. Copy and fill files in `templates/standards-ingestion/`.
+2. Build JSON payload:
+
+```bash
+npm run standards:build-ingestion -- \
+  --input-dir templates/standards-ingestion \
+  --output standards-ingestion.json
+```
+
+3. Submit `standards-ingestion.json` to `POST /api/v1/admin/standards/ingestions`.

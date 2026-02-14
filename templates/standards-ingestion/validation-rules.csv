@@ -1,0 +1,3 @@
+ruleCode,severity,assertionType,expression,disclosureId
+GRI_2_1_REQUIRED_FIELDS,ERROR,existenceAssertion,"exists('GRI_2_1_ENTITY_NAME') && exists('GRI_2_1_REPORTING_PERIOD')",GRI 2-1
+GRI_2_2_SCOPE_ALLOWED_VALUES,WARNING,valueAssertion,"inSet('GRI_2_2_SCOPE_TYPE', ['CONSOLIDATED','PARENT_ONLY','OTHER'])",GRI 2-2
