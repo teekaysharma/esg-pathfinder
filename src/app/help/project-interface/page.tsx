@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Gauge } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ChevronUp, Gauge } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import {
 
 export default function ProjectInterfaceHelpPage() {
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <main id="top" className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto max-w-6xl px-4 py-10 space-y-6">
         <Card id="overview" className="border-slate-200 dark:border-slate-700">
           <CardHeader className="pb-3">
@@ -36,7 +36,7 @@ export default function ProjectInterfaceHelpPage() {
         </Card>
 
         <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
             <Card id="workflow">
               <CardHeader>
                 <CardTitle>Step-by-step execution</CardTitle>
@@ -159,6 +159,15 @@ export default function ProjectInterfaceHelpPage() {
                   <Gauge className="h-4 w-4" />
                   Track readiness after each significant data update.
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <a href="#top" className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:underline">
+                  <ChevronUp className="h-4 w-4" />
+                  Back to top
+                </a>
               </CardContent>
             </Card>
           </div>
