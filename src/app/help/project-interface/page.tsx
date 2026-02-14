@@ -17,7 +17,7 @@ export default function ProjectInterfaceHelpPage() {
   return (
     <main id="top" className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto max-w-6xl px-4 py-10 space-y-6">
-        <Card id="overview" className="border-slate-200 dark:border-slate-700">
+        <Card id="overview" className="scroll-mt-24 border-slate-200 dark:border-slate-700">
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -36,8 +36,8 @@ export default function ProjectInterfaceHelpPage() {
         </Card>
 
         <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-            <Card id="workflow">
+          <div className="space-y-6">
+            <Card id="workflow" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle>Step-by-step execution</CardTitle>
                 <CardDescription>Recommended sequence to reduce rework and improve delivery consistency.</CardDescription>
@@ -68,7 +68,7 @@ export default function ProjectInterfaceHelpPage() {
               </CardContent>
             </Card>
 
-            <Card id="playbook">
+            <Card id="playbook" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle>Operational playbook (expanded)</CardTitle>
                 <CardDescription>Detailed checklist for each step in the interface workflow.</CardDescription>
@@ -104,7 +104,7 @@ export default function ProjectInterfaceHelpPage() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Page sections</CardTitle>
@@ -138,7 +138,7 @@ export default function ProjectInterfaceHelpPage() {
               </CardContent>
             </Card>
 
-            <Card id="quality">
+            <Card id="quality" className="scroll-mt-24">
               <CardHeader>
                 <CardTitle className="text-base">Quality checklist</CardTitle>
                 <CardDescription>Use before generating final reports.</CardDescription>
