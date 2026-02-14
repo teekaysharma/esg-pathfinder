@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import {
+  GRI_REPORTING_PATH_REQUIREMENTS,
+  GRI_TAXONOMY_METADATA,
+  buildGRIContentIndex,
+  validateGRISubmission
+} from '@/lib/gri-implementation-guide';
 
 // GRI Standards structure based on the Consolidated Set of GRI Standards
 const GRI_UNIVERSAL_STANDARDS = {
@@ -405,7 +411,39 @@ export async function POST(
 
     const projectId = params.id;
     const body = await request.json();
-    const { organizationProfile, sector, materialTopics, existingData } = body;
+    const {
+      organizationProfile,
+      sector,
+      materialTopics,
+      existingData,
+      reportingPath = 'IN_ACCORDANCE',
+      contentIndexUrl,
+      statementOfUse,
+      notifyGRI,
+      omissions = [],
+      disclosures = [],
+      sectorStandardsApplied = [],
+      excludedLikelyMaterialTopics = []
+    } = body;
+
+    const validationErrors = validateGRISubmission({
+      reportingPath,
+      disclosures,
+      contentIndexUrl,
+      statementOfUse,
+      notifyGRI,
+      omissions,
+      sectorStandardsApplied,
+      materialTopics,
+      excludedLikelyMaterialTopics
+    });
+
+    if (validationErrors.length > 0) {
+      return NextResponse.json(
+        { error: 'Invalid GRI submission payload', details: validationErrors },
+        { status: 400 }
+      );
+    }
 
     // Verify project exists and user has access
     const project = await db.project.findUnique({
@@ -425,17 +463,46 @@ export async function POST(
       existingData
     );
 
+    const taxonomyMapping = {
+      metadata: GRI_TAXONOMY_METADATA,
+      reportingPath,
+      reportingPathRequirements: GRI_REPORTING_PATH_REQUIREMENTS[reportingPath],
+      contentIndexUrl,
+      statementOfUse,
+      notifyGRI: Boolean(notifyGRI),
+      sectorStandardsApplied,
+      exclusions: excludedLikelyMaterialTopics,
+      omissionCount: omissions.length,
+      generatedContentIndex: buildGRIContentIndex(disclosures, omissions)
+    };
+
     // Save assessment to database
     const griAssessment = await db.gRIAssessment.create({
       data: {
         projectId: projectId,
         universalStandards: assessment.universalStandards,
-        sectorStandards: assessment.sectorStandards,
+        sectorStandards: {
+          ...(assessment.sectorStandards as Record<string, unknown>),
+          sectorStandardsApplied
+        },
         topicStandards: assessment.topicStandards,
-        reportingPrinciples: assessment.reportingPrinciples,
+        reportingPrinciples: {
+          ...(assessment.reportingPrinciples as Record<string, unknown>),
+          reportingPath,
+          statementOfUse,
+          contentIndexUrl,
+          taxonomyMapping
+        },
         stakeholderEngagement: assessment.stakeholderEngagement,
-        materiality: assessment.materiality,
-        disclosures: assessment.disclosures,
+        materiality: {
+          ...(assessment.materiality as Record<string, unknown>),
+          excludedLikelyMaterialTopics
+        },
+        disclosures: {
+          ...(assessment.disclosures as Record<string, unknown>),
+          submittedDisclosures: disclosures,
+          omissions
+        },
         overallScore: assessment.overallScore,
         gapAnalysis: assessment.gapAnalysis,
         recommendations: assessment.recommendations
@@ -445,7 +512,10 @@ export async function POST(
     return NextResponse.json({
       success: true,
       assessmentId: griAssessment.id,
-      results: assessment
+      results: {
+        ...assessment,
+        taxonomyMapping
+      }
     });
 
   } catch (error) {
@@ -482,6 +552,10 @@ export async function GET(
           universal: GRI_UNIVERSAL_STANDARDS,
           topic: GRI_TOPIC_STANDARDS,
           sector: GRI_SECTOR_STANDARDS
+        },
+        implementationGuide: {
+          reportingPaths: GRI_REPORTING_PATH_REQUIREMENTS,
+          taxonomy: GRI_TAXONOMY_METADATA
         }
       }, { status: 200 });
     }
@@ -492,6 +566,10 @@ export async function GET(
         universal: GRI_UNIVERSAL_STANDARDS,
         topic: GRI_TOPIC_STANDARDS,
         sector: GRI_SECTOR_STANDARDS
+      },
+      implementationGuide: {
+        reportingPaths: GRI_REPORTING_PATH_REQUIREMENTS,
+        taxonomy: GRI_TAXONOMY_METADATA
       }
     });
 
