@@ -121,3 +121,14 @@ npm run standards:build-ingestion -- \
 - `README.md`
 - `docs/standards-registry-contract.md`
 - `templates/standards-ingestion/README.md`
+
+## Maintainer note
+
+The in-app help page (`/help/project-interface`) now consumes shared help content from:
+
+- `src/lib/help-content.ts`
+
+When updating workflow guidance, prefer updating shared content first, then validate both:
+
+1. In-app page (`/help/project-interface`)
+2. This document (`docs/project-interface-help.md`)
