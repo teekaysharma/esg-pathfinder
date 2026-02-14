@@ -182,7 +182,7 @@ npm run bootstrap:windows
 
 This startup tool will:
 - Verify `node`, `npm`, and `psql` are available
-- Create/update `.env` and `.env.local`
+- Create/update `.env` and `.env.local` (preserves existing secrets unless forced)
 - Provision PostgreSQL role/database (`esg_user` / `esg_pathfinder` by default) using your local PostgreSQL server (no Docker)
 - Install npm dependencies
 - Run Prisma schema push + local seed
@@ -191,11 +191,15 @@ This startup tool will:
 Optional flags (PowerShell):
 ```powershell
 # Skip launching dev server after bootstrap
+# (also supported in starter: .\start.bat --skip-dev)
 npm run bootstrap:windows:skipdev
 
 # Or run script directly with custom DB values
 powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 `
   -DbHost localhost -DbPort 5432 -DbName esg_pathfinder -DbUser esg_user -DbPassword esg_password -AdminUser postgres
+
+# Force-rewrite env values (including secrets)
+powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 -ForceRewriteEnv
 ```
 
 If your postgres admin account requires a password, set `PGPASSWORD` before running the script.

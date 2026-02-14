@@ -16,11 +16,14 @@ Run one of:
 
 # or run npm bootstrap directly
 npm run bootstrap:windows
+
+# bootstrap only (from start.bat)
+.\start.bat --skip-dev
 ```
 
 ## What this bootstrap does
 - Checks `node`, `npm`, and `psql`
-- Writes `.env` and `.env.local`
+- Writes/updates `.env` and `.env.local` (preserves existing secrets unless forced)
 - Creates or updates role/database in PostgreSQL
 - Runs `npm install`
 - Runs `npm run db:push`
@@ -39,6 +42,9 @@ npm run bootstrap:windows:skipdev
 # Direct script call with custom DB settings
 powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 `
   -DbHost localhost -DbPort 5432 -DbName esg_pathfinder -DbUser esg_user -DbPassword esg_password -AdminUser postgres
+
+# Force-rewrite env values (including secrets)
+powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 -ForceRewriteEnv
 ```
 
 ## Note about PostgreSQL admin password

@@ -6,7 +6,8 @@ Param(
   [string]$DbPassword = "esg_password",
   [string]$AdminUser = "postgres",
   [string]$AdminDatabase = "postgres",
-  [switch]$SkipDev
+  [switch]$SkipDev,
+  [switch]$ForceRewriteEnv
 )
 
 $ErrorActionPreference = "Stop"
@@ -27,6 +28,47 @@ function New-SecretValue {
   return "$guidA$guidB"
 }
 
+function Upsert-EnvFile($filePath, $values, $forceRewrite) {
+  $lines = @()
+  if ((Test-Path $filePath) -and -not $forceRewrite) {
+    $lines = Get-Content $filePath
+  }
+
+  $map = @{}
+  foreach ($line in $lines) {
+    if ($line -match '^\s*#' -or -not ($line -match '=')) {
+      continue
+    }
+    $parts = $line -split '=', 2
+    $key = $parts[0].Trim()
+    if ($key) { $map[$key] = $parts[1] }
+  }
+
+  foreach ($k in $values.Keys) {
+    $v = '"' + $values[$k] + '"'
+    $map[$k] = $v
+  }
+
+  $orderedKeys = @(
+    'DATABASE_URL','JWT_SECRET','JWT_EXPIRES_IN','NEXTAUTH_SECRET','NEXTAUTH_URL',
+    'NODE_ENV','PORT','CORS_ORIGIN','Z_AI_API_KEY','Z_AI_BASE_URL'
+  )
+
+  $out = @()
+  foreach ($k in $orderedKeys) {
+    if ($map.ContainsKey($k)) {
+      $out += "$k=$($map[$k])"
+      $null = $map.Remove($k)
+    }
+  }
+
+  foreach ($k in ($map.Keys | Sort-Object)) {
+    $out += "$k=$($map[$k])"
+  }
+
+  Set-Content -Path $filePath -Value ($out -join "`n") -NoNewline
+}
+
 Write-Step "Checking requirements"
 Assert-Command "node"
 Assert-Command "npm"
@@ -40,32 +82,50 @@ Write-Host "npm: $npmVersion"
 Write-Host "psql: $psqlVersion"
 
 Write-Step "Preparing environment files"
-$jwtSecret = New-SecretValue
-$nextAuthSecret = New-SecretValue
 $dbUrl = "postgresql://${DbUser}:${DbPassword}@${DbHost}:${DbPort}/${DbName}?schema=public"
 
-$envTemplate = @"
-DATABASE_URL=\"$dbUrl\"
-JWT_SECRET=\"$jwtSecret\"
-JWT_EXPIRES_IN=\"24h\"
-NEXTAUTH_SECRET=\"$nextAuthSecret\"
-NEXTAUTH_URL=\"http://localhost:5000\"
-NODE_ENV=\"development\"
-PORT=\"5000\"
-CORS_ORIGIN=\"http://localhost:5000,http://localhost:3000\"
-Z_AI_API_KEY=\"\"
-Z_AI_BASE_URL=\"https://api.z-ai.dev\"
-"@
+$jwtSecret = if ($ForceRewriteEnv -or -not (Test-Path '.env')) { New-SecretValue } else { '' }
+$nextAuthSecret = if ($ForceRewriteEnv -or -not (Test-Path '.env')) { New-SecretValue } else { '' }
 
-Set-Content -Path ".env" -Value $envTemplate -NoNewline
-Set-Content -Path ".env.local" -Value $envTemplate -NoNewline
-Write-Host "Created/updated .env and .env.local"
+$baseValues = @{
+  DATABASE_URL = $dbUrl
+  JWT_EXPIRES_IN = '24h'
+  NEXTAUTH_URL = 'http://localhost:5000'
+  NODE_ENV = 'development'
+  PORT = '5000'
+  CORS_ORIGIN = 'http://localhost:5000,http://localhost:3000'
+  Z_AI_API_KEY = ''
+  Z_AI_BASE_URL = 'https://api.z-ai.dev'
+}
 
-Write-Step "Provisioning PostgreSQL role and database"
+$envValues = @{}
+foreach ($entry in $baseValues.GetEnumerator()) { $envValues[$entry.Key] = $entry.Value }
+
+if ($jwtSecret) { $envValues['JWT_SECRET'] = $jwtSecret }
+if ($nextAuthSecret) { $envValues['NEXTAUTH_SECRET'] = $nextAuthSecret }
+
+Upsert-EnvFile '.env' $envValues $ForceRewriteEnv
+Upsert-EnvFile '.env.local' $envValues $ForceRewriteEnv
+Write-Host "Updated .env and .env.local (existing secrets preserved unless -ForceRewriteEnv is set)"
+
+Write-Step "Validating PostgreSQL admin connectivity"
 if (-not $env:PGPASSWORD) {
   Write-Host "PGPASSWORD is not set. If your postgres admin user requires a password, set PGPASSWORD and re-run if this step fails." -ForegroundColor Yellow
 }
 
+try {
+  psql -h $DbHost -p $DbPort -U $AdminUser -d $AdminDatabase -v ON_ERROR_STOP=1 -c "SELECT version();" | Out-Null
+  Write-Host "PostgreSQL connection OK ($AdminUser@$DbHost:$DbPort/$AdminDatabase)"
+} catch {
+  Write-Host "Failed to connect to PostgreSQL as admin user '$AdminUser'." -ForegroundColor Red
+  Write-Host "Tips:" -ForegroundColor Yellow
+  Write-Host " - Verify PostgreSQL service is running"
+  Write-Host " - Verify host/port/admin database are correct"
+  Write-Host " - Set PGPASSWORD if password auth is required"
+  throw
+}
+
+Write-Step "Provisioning PostgreSQL role and database"
 $createRoleSql = @"
 DO $$
 BEGIN

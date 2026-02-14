@@ -2,6 +2,15 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
+set "BOOTSTRAP_ARGS="
+if /I "%~1"=="--skip-dev" (
+  set "BOOTSTRAP_ARGS=-SkipDev"
+  shift
+)
+if not "%~1"=="" (
+  set "BOOTSTRAP_ARGS=%BOOTSTRAP_ARGS% %*"
+)
+
 echo.
 echo ==================================================
 echo ESG Pathfinder Windows Starter (No Docker)
@@ -23,9 +32,13 @@ for /f "tokens=*" %%i in ('npm --version') do echo   npm: %%i
 for /f "tokens=*" %%i in ('psql --version') do echo   psql: %%i
 
 echo.
-echo [INFO] Starting full bootstrap ^(env + DB provision + npm install + prisma + seed + dev server^)...
+if /I "%BOOTSTRAP_ARGS%"=="-SkipDev" (
+  echo [INFO] Starting bootstrap only ^(--skip-dev mode^)...
+) else (
+  echo [INFO] Starting full bootstrap ^(env + DB provision + npm install + prisma + seed + dev server^)...
+)
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\windows\bootstrap-local.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\windows\bootstrap-local.ps1" %BOOTSTRAP_ARGS%
 if errorlevel 1 goto :bootstrap_failed
 
 echo.
