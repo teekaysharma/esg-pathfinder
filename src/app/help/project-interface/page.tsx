@@ -84,6 +84,13 @@ const detailedPlaybook = [
   },
 ]
 
+const sectionLinks = [
+  { href: '#overview', label: 'Overview' },
+  { href: '#workflow', label: 'Workflow steps' },
+  { href: '#playbook', label: 'Operational playbook' },
+  { href: '#quality', label: 'Quality checklist' },
+]
+
 const quickLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/project', label: 'Project Workspace', icon: Workflow },
@@ -103,7 +110,7 @@ export default function ProjectInterfaceHelpPage() {
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto max-w-6xl px-4 py-10 space-y-6">
-        <Card className="border-slate-200 dark:border-slate-700">
+        <Card id="overview" className="border-slate-200 dark:border-slate-700">
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -123,7 +130,7 @@ export default function ProjectInterfaceHelpPage() {
 
         <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <div className="space-y-6">
-            <Card>
+            <Card id="workflow">
               <CardHeader>
                 <CardTitle>Step-by-step execution</CardTitle>
                 <CardDescription>Recommended sequence to reduce rework and improve delivery consistency.</CardDescription>
@@ -154,7 +161,7 @@ export default function ProjectInterfaceHelpPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="playbook">
               <CardHeader>
                 <CardTitle>Operational playbook (expanded)</CardTitle>
                 <CardDescription>Detailed checklist for each step in the interface workflow.</CardDescription>
@@ -193,7 +200,22 @@ export default function ProjectInterfaceHelpPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Quick navigation</CardTitle>
+                <CardTitle className="text-base">Page sections</CardTitle>
+                <CardDescription>Jump to the part you need immediately.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {sectionLinks.map((link) => (
+                  <a key={link.href} href={link.href} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <span>{link.label}</span>
+                    <ArrowRight className="h-4 w-4 text-slate-400" />
+                  </a>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Product navigation</CardTitle>
                 <CardDescription>Jump directly to key product surfaces.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -209,7 +231,7 @@ export default function ProjectInterfaceHelpPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="quality">
               <CardHeader>
                 <CardTitle className="text-base">Quality checklist</CardTitle>
                 <CardDescription>Use before generating final reports.</CardDescription>
