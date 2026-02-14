@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { hashPassword, verifyPassword, generateToken } from '@/lib/auth'
+import { verifyPassword, generateToken } from '@/lib/auth-utils'
 import { loginSchema } from '@/lib/validations'
 import { withAuthRateLimit } from '@/lib/security-middleware'
+import { findDemoUserByEmail } from '@/lib/mvp-demo-store'
 
 const loginHandler = async (request: NextRequest) => {
   try {
@@ -11,6 +12,46 @@ const loginHandler = async (request: NextRequest) => {
     // Validate input
     const validatedData = loginSchema.parse(body)
     const { email, password } = validatedData
+
+
+    if (!process.env.DATABASE_URL) {
+      const demoUser = findDemoUserByEmail(email)
+      if (!demoUser || password != 'Admin123!') {
+        return NextResponse.json(
+          { error: 'Invalid email or password' },
+          { status: 401 }
+        )
+      }
+
+      const token = generateToken({
+        userId: demoUser.id,
+        email: demoUser.email,
+        role: demoUser.role
+      })
+
+      const response = NextResponse.json({
+        user: {
+          id: demoUser.id,
+          email: demoUser.email,
+          name: demoUser.name,
+          role: demoUser.role,
+          isActive: demoUser.isActive,
+          emailVerified: demoUser.emailVerified
+        },
+        token,
+        message: 'Login successful (demo mode)'
+      })
+
+      response.cookies.set('auth_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24,
+      })
+
+      return response
+    }
 
     // Find user by email
     const user = await db.user.findUnique({
@@ -74,11 +115,21 @@ const loginHandler = async (request: NextRequest) => {
     // Return user data and token (excluding password)
     const { password: _, ...userWithoutPassword } = user
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: userWithoutPassword,
       token,
       message: 'Login successful'
     })
+
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24,
+    })
+
+    return response
 
   } catch (error) {
     console.error('Login error:', error)

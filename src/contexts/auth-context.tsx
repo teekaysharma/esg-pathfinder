@@ -24,7 +24,7 @@ interface AuthContextType {
   token: string | null
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   register: (email: string, password: string, name: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>
-  logout: () => void
+  logout: () => Promise<void>
   isLoading: boolean
   isAuthenticated: boolean
   hasRole: (role: UserRole) => boolean
@@ -39,36 +39,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for existing token on mount
-    const savedToken = localStorage.getItem('auth_token')
-    if (savedToken) {
-      setToken(savedToken)
-      // Verify token and get user info
-      fetchUserInfo(savedToken)
-    } else {
-      setIsLoading(false)
-    }
+    fetchUserInfo()
   }, [])
 
-  const fetchUserInfo = async (authToken: string) => {
+  const fetchUserInfo = async () => {
     try {
       const response = await fetch('/api/v1/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+        credentials: 'include'
       })
 
       if (response.ok) {
         const data = await response.json()
         setUser(data.user)
       } else {
-        // Token is invalid, clear it
-        localStorage.removeItem('auth_token')
         setToken(null)
       }
     } catch (error) {
       console.error('Error fetching user info:', error)
-      localStorage.removeItem('auth_token')
       setToken(null)
     } finally {
       setIsLoading(false)
@@ -79,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await fetch('/api/v1/auth/login', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -90,7 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         setToken(data.token)
         setUser(data.user)
-        localStorage.setItem('auth_token', data.token)
         return { success: true }
       } else {
         return { success: false, error: data.error }
@@ -105,6 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await fetch('/api/v1/auth/register', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -116,7 +104,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         setToken(data.token)
         setUser(data.user)
-        localStorage.setItem('auth_token', data.token)
         return { success: true }
       } else {
         return { success: false, error: data.error }
@@ -127,17 +114,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    setToken(null)
-    localStorage.removeItem('auth_token')
+  const logout = async () => {
+    try {
+      await fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setUser(null)
+      setToken(null)
+      document.cookie = 'auth_token=; Max-Age=0; path=/'
+    }
   }
 
   const hasRole = (role: UserRole): boolean => {
     return user?.role === role
   }
 
-  const isAuthenticated = !!user && !!token
+  const isAuthenticated = !!user
   const isAdmin = hasRole(UserRole.ADMIN)
 
   const value: AuthContextType = {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimits, detectSuspiciousActivity, addSecurityHeaders, blockIP } from './rate-limit'
-import { verifyToken, extractTokenFromHeader } from './auth'
+import { verifyToken, extractTokenFromHeader, extractTokenFromCookie } from './auth-utils'
 
 // Security middleware for API routes
 export function withSecurity(
@@ -45,9 +45,9 @@ export function withSecurity(
       }
 
       // 3. Authentication check if required
-      let user = null
       if (options.requireAuth) {
-        const token = extractTokenFromHeader(req.headers.get('authorization'))
+        const token = extractTokenFromHeader(req.headers.get('authorization') || undefined) ||
+          extractTokenFromCookie(req.headers.get('cookie'))
         if (!token) {
           return NextResponse.json(
             { error: 'Authentication required' },
@@ -55,7 +55,7 @@ export function withSecurity(
           )
         }
 
-        user = verifyToken(token)
+        const user = verifyToken(token)
         if (!user) {
           return NextResponse.json(
             { error: 'Invalid or expired token' },

@@ -1,0 +1,4 @@
+code,label,dataType,unit,allowedValues,disclosureId,dimensionType
+GRI_2_1_ENTITY_NAME,Entity legal name,string,,,GRI 2-1,NONE
+GRI_2_1_REPORTING_PERIOD,Reporting period,date,,,GRI 2-1,NONE
+GRI_2_2_SCOPE_TYPE,Scope type,enum,,CONSOLIDATED|PARENT_ONLY|OTHER,GRI 2-2,EXPLICIT

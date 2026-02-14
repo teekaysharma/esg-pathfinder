@@ -49,7 +49,7 @@ function cleanupExpiredEntries(): void {
 export function createRateLimit(config: Partial<RateLimitConfig> = {}) {
   const finalConfig = { ...defaultConfig, ...config }
 
-  return function rateLimit(req: NextRequest, identifier?: string): NextResponse | null {
+  const limiter = function rateLimit(req: NextRequest, identifier?: string): NextResponse | null {
     // Clean up expired entries periodically
     if (Math.random() < 0.01) { // 1% chance to cleanup
       cleanupExpiredEntries()
@@ -72,7 +72,7 @@ export function createRateLimit(config: Partial<RateLimitConfig> = {}) {
     entry.count++
 
     // Check if limit exceeded
-    if (entry.count > finalConfig.maxRequests) {
+    if (entry.count > (finalConfig.maxRequests || 100)) {
       const resetTimeSeconds = Math.ceil((entry.resetTime - now) / 1000)
       
       return NextResponse.json(
@@ -100,6 +100,9 @@ export function createRateLimit(config: Partial<RateLimitConfig> = {}) {
     // Add rate limit headers to successful responses
     return null // Let the request proceed
   }
+
+  ;(limiter as any).maxRequests = finalConfig.maxRequests
+  return limiter
 }
 
 // Rate limit decorators for different endpoints
@@ -174,9 +177,10 @@ export function withRateLimit(rateLimiter: ReturnType<typeof createRateLimit>, g
       const key = getRateLimitKey(req, userId)
       const entry = rateLimitStore.get(key)
       if (entry && response.status < 400) {
-        const remaining = Math.max(0, rateLimiter.maxRequests - entry.count)
+        const limit = (rateLimiter as any).maxRequests || 100
+        const remaining = Math.max(0, limit - entry.count)
         
-        response.headers.set('X-RateLimit-Limit', rateLimiter.maxRequests.toString())
+        response.headers.set('X-RateLimit-Limit', limit.toString())
         response.headers.set('X-RateLimit-Remaining', remaining.toString())
         response.headers.set('X-RateLimit-Reset', entry.resetTime.toString())
       }
@@ -272,7 +276,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
   // Content Security Policy
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'"
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'"
   )
   
   // Referrer policy

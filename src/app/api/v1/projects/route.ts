@@ -5,15 +5,43 @@ import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import { UserRole } from "@prisma/client"
 import { createProjectSchema, querySchemas } from "@/lib/validations"
 import { Logger, handleApiError, createError, withRequestTiming } from "@/lib/logger"
+import { userCanCreateForOrganisation } from "@/lib/project-auth"
+import { createDemoProject, listDemoProjects } from '@/lib/mvp-demo-store'
 
 const logger = new Logger('PROJECTS_API')
 
 const createProjectHandler = withRequestTiming(async (req: AuthenticatedRequest) => {
   const requestId = logger.logAPIRequest(req, req.user?.userId)
+  const startTime = Date.now()
 
   try {
     const body = await req.json()
     const validatedData = createProjectSchema.parse(body)
+
+
+    if (!process.env.DATABASE_URL) {
+      const project = createDemoProject({
+        name: validatedData.name,
+        organisationId: validatedData.organisationId,
+        createdBy: req.user!.userId,
+        scopeRaw: validatedData.scopeRaw
+      })
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          ...project,
+          organisation: { id: project.organisationId, name: project.organisationName },
+          creator: {
+            id: req.user!.userId,
+            email: req.user!.email,
+            name: req.user!.email.split('@')[0],
+            role: req.user!.role
+          }
+        },
+        message: 'Project created successfully (demo mode)'
+      })
+    }
 
     logger.info('Creating project', { 
       projectName: validatedData.name, 
@@ -27,6 +55,14 @@ const createProjectHandler = withRequestTiming(async (req: AuthenticatedRequest)
 
     if (!organisation) {
       throw createError.notFound('Organization', validatedData.organisationId)
+    }
+
+    const canCreate = await userCanCreateForOrganisation(req.user!, validatedData.organisationId)
+    if (!canCreate) {
+      return NextResponse.json(
+        { error: "Insufficient permissions for organization" },
+        { status: 403 }
+      )
     }
 
     // Create project with authenticated user as creator
@@ -77,7 +113,7 @@ const createProjectHandler = withRequestTiming(async (req: AuthenticatedRequest)
       message: "Project created successfully"
     })
 
-    logger.logAPIResponse(req, 201, Date.now() - Date.now())
+    logger.logAPIResponse(req, 201, Date.now() - startTime)
     return response
 
   } catch (error) {
@@ -101,6 +137,32 @@ const getProjectsHandler = async (req: AuthenticatedRequest) => {
     }
     
     const { organisationId, userId, page, limit } = queryValidation.data
+
+
+    if (!process.env.DATABASE_URL) {
+      const projects = listDemoProjects(req.user!.userId, req.user!.role)
+      return NextResponse.json({
+        success: true,
+        data: projects.map((p) => ({
+          ...p,
+          organisation: { id: p.organisationId, name: p.organisationName },
+          creator: {
+            id: p.createdBy,
+            email: req.user!.email,
+            name: req.user!.email.split('@')[0],
+            role: req.user!.role
+          },
+          _count: { reports: 0, evidences: 0, materialityMaps: 0 }
+        })),
+        pagination: {
+          page,
+          limit,
+          total: projects.length,
+          pages: 1
+        }
+      })
+    }
+
 
     let whereClause = {}
 

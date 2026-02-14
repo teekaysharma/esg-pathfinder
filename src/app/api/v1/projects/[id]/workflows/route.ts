@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import { z } from "zod"
 
 const workflowSchema = z.object({
@@ -46,10 +47,10 @@ interface WorkflowResponse {
   updatedAt: string
 }
 
-export async function POST(
-  request: NextRequest,
+const POSTHandler = async (
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
     const body = await request.json() as WorkflowRequest
@@ -185,10 +186,10 @@ export async function POST(
   }
 }
 
-export async function GET(
-  request: NextRequest,
+const GETHandler = async (
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
     const { searchParams } = new URL(request.url)
@@ -501,3 +502,6 @@ async function generateWorkflowFromCompliance(project: any, framework: string): 
     }))
   }
 }
+
+export const POST = withAuth(POSTHandler)
+export const GET = withAuth(GETHandler)
