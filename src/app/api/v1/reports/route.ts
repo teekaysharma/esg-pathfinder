@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
 import { UserRole } from '@prisma/client'
-import { getDemoProject, listDemoReports } from '@/lib/local-mvp-store'
+import { getDemoProject, listDemoReports } from '@/lib/mvp-demo-store'
 
 async function handler(req: AuthenticatedRequest) {
   try {

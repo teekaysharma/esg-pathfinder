@@ -6,7 +6,7 @@ import { UserRole } from "@prisma/client"
 import { createProjectSchema, querySchemas } from "@/lib/validations"
 import { Logger, handleApiError, createError, withRequestTiming } from "@/lib/logger"
 import { userCanCreateForOrganisation } from "@/lib/project-auth"
-import { createDemoProject, listDemoProjects } from '@/lib/local-mvp-store'
+import { createDemoProject, listDemoProjects } from '@/lib/mvp-demo-store'
 
 const logger = new Logger('PROJECTS_API')
 

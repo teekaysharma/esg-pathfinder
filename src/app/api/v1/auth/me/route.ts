@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
-import { findDemoUserById } from '@/lib/local-mvp-store'
+import { findDemoUserById } from '@/lib/mvp-demo-store'
 
 async function handler(req: AuthenticatedRequest) {
   try {

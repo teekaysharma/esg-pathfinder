@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
 import { userCanAccessProject } from '@/lib/project-auth'
 import { buildStandardsReadiness } from '@/lib/standards/readiness'
-import { getDemoProject, listDemoReports } from '@/lib/local-mvp-store'
+import { getDemoProject, listDemoReports } from '@/lib/mvp-demo-store'
 import { UserRole } from '@prisma/client'
 
 const GETHandler = async (

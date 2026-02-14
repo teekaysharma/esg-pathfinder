@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
 import { UserRole } from '@prisma/client'
-import { getDemoProject, getDemoReport } from '@/lib/local-mvp-store'
+import { getDemoProject, getDemoReport } from '@/lib/mvp-demo-store'
 
 const mimeByFormat: Record<string, string> = {
   json: 'application/json',

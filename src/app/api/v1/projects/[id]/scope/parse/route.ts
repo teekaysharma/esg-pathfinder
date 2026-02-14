@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import ZAI from "z-ai-web-dev-sdk"
-import { getDemoProject, updateDemoProject } from "@/lib/local-mvp-store"
+import { getDemoProject, updateDemoProject } from "@/lib/mvp-demo-store"
 
 interface ScopeParseRequest {
   rawScope: string

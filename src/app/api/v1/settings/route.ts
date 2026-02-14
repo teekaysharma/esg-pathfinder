@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
-import { findDemoUserById, upsertDemoUser } from '@/lib/local-mvp-store'
+import { findDemoUserById, upsertDemoUser } from '@/lib/mvp-demo-store'
 
 interface UserPreferences {
   notifications?: {

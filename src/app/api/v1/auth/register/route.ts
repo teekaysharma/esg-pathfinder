@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { hashPassword, generateToken } from '@/lib/auth-utils'
 import { registerSchema } from '@/lib/validations'
 import { withRegisterSecurity } from '@/lib/security-middleware'
-import { findDemoUserByEmail, upsertDemoUser } from '@/lib/local-mvp-store'
+import { findDemoUserByEmail, upsertDemoUser } from '@/lib/mvp-demo-store'
 
 const registerHandler = async (request: NextRequest) => {
   try {

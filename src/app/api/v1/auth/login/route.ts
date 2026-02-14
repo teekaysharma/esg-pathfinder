@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { verifyPassword, generateToken } from '@/lib/auth-utils'
 import { loginSchema } from '@/lib/validations'
 import { withAuthRateLimit } from '@/lib/security-middleware'
-import { findDemoUserByEmail } from '@/lib/local-mvp-store'
+import { findDemoUserByEmail } from '@/lib/mvp-demo-store'
 
 const loginHandler = async (request: NextRequest) => {
   try {
