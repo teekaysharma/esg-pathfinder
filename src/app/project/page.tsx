@@ -263,10 +263,17 @@ export default function ProjectWorkspace() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
+            <Link href="/help/project-interface">
+              <Button variant="outline" size="sm">
+                Help
+              </Button>
+            </Link>
+            <Link href="/settings">
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
           </div>
         </div>
       </header>

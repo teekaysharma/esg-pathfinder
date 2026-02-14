@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, FileText, Users, Settings, LogOut, Shield, Loader2 } from "lucide-react"
+import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, FileText, Users, Settings, LogOut, Shield, Loader2, HelpCircle } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
@@ -154,6 +154,7 @@ export default function Dashboard() {
                 <Link href="/project" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Projects</Link>
                 <Link href="/reports" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Reports</Link>
                 <Link href="/settings" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Settings</Link>
+                <Link href="/help/project-interface" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">Help</Link>
               </nav>
             </div>
 
@@ -166,6 +167,7 @@ export default function Dashboard() {
                   </Button>
                 </Link>
               )}
+              <Link href="/help/project-interface"><Button variant="outline" size="sm"><HelpCircle className="h-4 w-4 mr-2" />Help</Button></Link>
               <Link href="/settings"><Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-2" />Settings</Button></Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -177,6 +179,7 @@ export default function Dashboard() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuItem><Users className="mr-2 h-4 w-4" /><span>Profile</span></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/help/project-interface"><HelpCircle className="mr-2 h-4 w-4" /><span>Help</span></Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 h-4 w-4" /><span>Settings</span></Link></DropdownMenuItem>
                   <DropdownMenuItem onClick={logout}><LogOut className="mr-2 h-4 w-4" /><span>Log out</span></DropdownMenuItem>
                 </DropdownMenuContent>

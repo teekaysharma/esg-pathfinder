@@ -227,9 +227,10 @@ After running `npm run db:setup:local`:
 
 ### **Project Interface Help (Step-by-Step)**
 
-For a complete guided workflow through the interface (from login to reporting and standards ingestion), see:
+For a complete guided workflow through the interface (from login to reporting and standards ingestion), use:
 
-- `docs/project-interface-help.md`
+- In-app help page: `/help/project-interface`
+- Full doc: `docs/project-interface-help.md`
 
 ### **Standards Readiness & Data Collection APIs**
 
