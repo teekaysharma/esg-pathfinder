@@ -16,6 +16,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 const workflowSteps = [
   {
@@ -47,6 +48,39 @@ const workflowSteps = [
     description: 'Track standard-level readiness, close blockers, and generate outputs.',
     outcome: 'Audit-ready report package and traceable process history.',
     icon: FileText,
+  },
+]
+
+const detailedPlaybook = [
+  {
+    key: 'step-1',
+    title: 'Step 1 — Sign in and validate permissions',
+    doItems: ['Login and confirm active session.', 'Verify organization context and role.', 'Open dashboard and ensure project list visibility.'],
+    verify: 'You can access expected routes without permission errors.',
+  },
+  {
+    key: 'step-2',
+    title: 'Step 2 — Project setup and scope baseline',
+    doItems: ['Create or select a project.', 'Capture scope inputs (entities, geographies, boundaries).', 'Save scope and refresh workspace context.'],
+    verify: 'Project metadata and scope are stable before assessment work begins.',
+  },
+  {
+    key: 'step-3',
+    title: 'Step 3 — Framework module completion',
+    doItems: ['Complete applicable framework assessments.', 'Record qualitative notes and quantitative datapoints.', 'Review generated gaps and recommendations.'],
+    verify: 'Each enabled framework has current assessment outputs.',
+  },
+  {
+    key: 'step-4',
+    title: 'Step 4 — Data quality and compliance checks',
+    doItems: ['Address missing datapoints.', 'Resolve ERROR checks and document WARNING rationale.', 'Link evidence where available.'],
+    verify: 'Validation quality is sufficient for readiness review.',
+  },
+  {
+    key: 'step-5',
+    title: 'Step 5 — Readiness, reporting, and handoff',
+    doItems: ['Review readiness summary by standard.', 'Close outstanding blockers.', 'Generate and download final report artifacts.'],
+    verify: 'Outputs are audit-ready and traceable.',
   },
 ]
 
@@ -88,36 +122,73 @@ export default function ProjectInterfaceHelpPage() {
         </Card>
 
         <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>Step-by-step execution</CardTitle>
-              <CardDescription>Recommended sequence to reduce rework and improve delivery consistency.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {workflowSteps.map((step, index) => {
-                const Icon = step.icon
-                return (
-                  <div key={step.title} className="rounded-lg border bg-white dark:bg-slate-800 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-md bg-slate-100 dark:bg-slate-700 p-2">
-                          <Icon className="h-4 w-4" />
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Step-by-step execution</CardTitle>
+                <CardDescription>Recommended sequence to reduce rework and improve delivery consistency.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {workflowSteps.map((step, index) => {
+                  const Icon = step.icon
+                  return (
+                    <div key={step.title} className="rounded-lg border bg-white dark:bg-slate-800 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5 rounded-md bg-slate-100 dark:bg-slate-700 p-2">
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-slate-900 dark:text-white">{index + 1}. {step.title}</h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{step.description}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                              <span className="font-medium">Expected outcome:</span> {step.outcome}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-slate-900 dark:text-white">{index + 1}. {step.title}</h3>
-                          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{step.description}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                            <span className="font-medium">Expected outcome:</span> {step.outcome}
-                          </p>
-                        </div>
+                        <ArrowRight className="h-4 w-4 text-slate-400" />
                       </div>
-                      <ArrowRight className="h-4 w-4 text-slate-400" />
                     </div>
-                  </div>
-                )
-              })}
-            </CardContent>
-          </Card>
+                  )
+                })}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Operational playbook (expanded)</CardTitle>
+                <CardDescription>Detailed checklist for each step in the interface workflow.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  {detailedPlaybook.map((step) => (
+                    <AccordionItem value={step.key} key={step.key}>
+                      <AccordionTrigger>{step.title}</AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-3 rounded-md border bg-slate-50 dark:bg-slate-800 p-4">
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Do</p>
+                            <ul className="mt-2 space-y-1 text-sm text-slate-700 dark:text-slate-300">
+                              {step.doItems.map((item) => (
+                                <li key={item} className="flex items-start gap-2">
+                                  <CheckCircle2 className="h-4 w-4 mt-0.5 text-green-600" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Validation gate</p>
+                            <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{step.verify}</p>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </div>
 
           <div className="space-y-6">
             <Card>
