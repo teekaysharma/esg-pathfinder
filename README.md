@@ -257,6 +257,7 @@ These endpoints complement existing routes for:
 - **[🧪 Testing Guide](./docs/testing.md)** - Testing framework and coverage
 - **[🚀 Deployment Guide](./DEPLOYMENT.md)** - Platform-specific deployment instructions
 - **[📚 API Documentation](./docs/api.md)** - Complete API reference
+- **[🧠 Standards Registry Contract](./docs/standards-registry-contract.md)** - Ingestion schema and admin API for framework knowledge
 - **[🏢 Framework Guides](./docs/frameworks/)** - Individual framework documentation
 - **[🤝 Contributing Guide](./CONTRIBUTING.md)** - Development and contribution guidelines
 
