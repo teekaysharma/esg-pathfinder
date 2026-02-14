@@ -225,6 +225,12 @@ After running `npm run db:setup:local`:
 ⚠️ **Important**: `JWT_SECRET` must be strong (minimum 32 characters).
 
 
+### **Project Interface Help (Step-by-Step)**
+
+For a complete guided workflow through the interface (from login to reporting and standards ingestion), see:
+
+- `docs/project-interface-help.md`
+
 ### **Standards Readiness & Data Collection APIs**
 
 The platform now includes project-level readiness and collection endpoints to ensure all framework requirements can be prepared before final report generation:
@@ -257,6 +263,7 @@ These endpoints complement existing routes for:
 - **[🧪 Testing Guide](./docs/testing.md)** - Testing framework and coverage
 - **[🚀 Deployment Guide](./DEPLOYMENT.md)** - Platform-specific deployment instructions
 - **[📚 API Documentation](./docs/api.md)** - Complete API reference
+- **[🧭 Project Interface Help](./docs/project-interface-help.md)** - End-to-end step-by-step UI workflow
 - **[🧠 Standards Registry Contract](./docs/standards-registry-contract.md)** - Ingestion schema and admin API for framework knowledge
 - **[🧾 Standards CSV Templates](./templates/standards-ingestion/README.md)** - Offline template workflow for licensed/protected framework sources
 - **[🏢 Framework Guides](./docs/frameworks/)** - Individual framework documentation
