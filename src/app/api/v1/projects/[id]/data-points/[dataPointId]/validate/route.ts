@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import { z } from "zod"
 
 const validationSchema = z.object({
@@ -37,10 +38,10 @@ interface ValidationResponse {
   validatedAt: string
 }
 
-export async function POST(
-  request: NextRequest,
+const POSTHandler = async (
+  request: AuthenticatedRequest,
   { params }: { params: { id: string; dataPointId: string } }
-) {
+) => {
   try {
     const projectId = params.id
     const dataPointId = params.dataPointId
@@ -496,3 +497,5 @@ function checkCompleteness(dataPoint: any): any[] {
 
   return issues
 }
+
+export const POST = withAuth(POSTHandler)

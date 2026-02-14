@@ -49,7 +49,7 @@ function cleanupExpiredEntries(): void {
 export function createRateLimit(config: Partial<RateLimitConfig> = {}) {
   const finalConfig = { ...defaultConfig, ...config }
 
-  return function rateLimit(req: NextRequest, identifier?: string): NextResponse | null {
+  const limiter = function rateLimit(req: NextRequest, identifier?: string): NextResponse | null {
     // Clean up expired entries periodically
     if (Math.random() < 0.01) { // 1% chance to cleanup
       cleanupExpiredEntries()
@@ -100,6 +100,9 @@ export function createRateLimit(config: Partial<RateLimitConfig> = {}) {
     // Add rate limit headers to successful responses
     return null // Let the request proceed
   }
+
+  ;(limiter as any).maxRequests = finalConfig.maxRequests
+  return limiter
 }
 
 // Rate limit decorators for different endpoints
@@ -273,7 +276,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
   // Content Security Policy
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'"
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'"
   )
   
   // Referrer policy

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -37,86 +38,132 @@ import {
   Clock
 } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
+import { ProtectedRoute } from "@/components/protected-route"
 
-// Mock data for scope parsing suggestions
-const mockScopeSuggestions = {
-  entities: [
-    {
-      name: "TechCorp Inc.",
-      type: "company",
-      confidence: 0.95,
-      suggestions: ["TechCorp Inc.", "TechCorp Incorporated", "TechCorp"]
-    },
-    {
-      name: "Manufacturing Division",
-      type: "division",
-      confidence: 0.87,
-      suggestions: ["Manufacturing Division", "Production Unit", "Manufacturing Unit"]
-    }
-  ],
-  activities: [
-    {
-      name: "Software Development",
-      type: "primary",
-      confidence: 0.92,
-      suggestions: ["Software Development", "IT Services", "Technology Development"]
-    },
-    {
-      name: "Cloud Infrastructure",
-      type: "supporting",
-      confidence: 0.78,
-      suggestions: ["Cloud Infrastructure", "Data Centers", "IT Infrastructure"]
-    }
-  ],
-  geographies: [
-    {
-      name: "United States",
-      type: "country",
-      confidence: 0.98,
-      suggestions: ["United States", "USA", "US"]
-    },
-    {
-      name: "European Union",
-      type: "region",
-      confidence: 0.85,
-      suggestions: ["European Union", "EU", "Europe"]
-    }
-  ],
-  standards: [
-    {
-      name: "GRI Standards",
-      type: "framework",
-      confidence: 0.94,
-      clause: "GRI 1-3",
-      suggestions: ["GRI Standards", "Global Reporting Initiative", "GRI"]
-    },
-    {
-      name: "SASB Technology & Services",
-      type: "sector-specific",
-      confidence: 0.89,
-      clause: "SASB TC-AC-130a",
-      suggestions: ["SASB Technology & Services", "SASB Tech", "SASB Software"]
-    }
-  ]
-}
+type ProjectOption = { id: string; name: string; status: string }
 
 export default function ProjectWorkspace() {
+  const { token } = useAuth()
+  const [projects, setProjects] = useState<ProjectOption[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("")
   const [rawScope, setRawScope] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [suggestions, setSuggestions] = useState<any>(null)
   const [acceptedSuggestions, setAcceptedSuggestions] = useState<any>({})
   const [structuredScope, setStructuredScope] = useState<any>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [readinessSummary, setReadinessSummary] = useState<any>(null)
+  const [latestReport, setLatestReport] = useState<any>(null)
+  const [isLoadingMvpData, setIsLoadingMvpData] = useState(false)
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+
+  const headers = useMemo(() => {
+    const authHeaders: Record<string, string> = {}
+    if (token) authHeaders.Authorization = `Bearer ${token}`
+    return authHeaders
+  }, [token])
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const response = await fetch('/api/v1/projects?limit=100', {
+          credentials: 'include',
+          headers
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to load projects')
+        }
+
+        const data = await response.json()
+        const items = (data.data || []).map((project: any) => ({
+          id: project.id,
+          name: project.name,
+          status: project.status
+        }))
+
+        setProjects(items)
+        if (items.length > 0) {
+          setSelectedProjectId(items[0].id)
+        }
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : 'Failed to load projects')
+      }
+    }
+
+    loadProjects()
+  }, [headers])
+
+  const selectedProject = projects.find((project) => project.id === selectedProjectId)
+
+  const loadMvpData = async (projectId: string) => {
+    try {
+      setIsLoadingMvpData(true)
+
+      const [readinessResponse, reportsResponse] = await Promise.all([
+        fetch(`/api/v1/projects/${projectId}/standards/readiness`, {
+          credentials: 'include',
+          headers
+        }),
+        fetch(`/api/v1/reports?projectId=${projectId}`, {
+          credentials: 'include',
+          headers
+        })
+      ])
+
+      if (readinessResponse.ok) {
+        const readinessData = await readinessResponse.json()
+        setReadinessSummary(readinessData.data)
+      }
+
+      if (reportsResponse.ok) {
+        const reportsData = await reportsResponse.json()
+        setLatestReport((reportsData.data || [])[0] || null)
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to load project readiness')
+    } finally {
+      setIsLoadingMvpData(false)
+    }
+  }
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadMvpData(selectedProjectId)
+    }
+  }, [selectedProjectId])
 
   const handleAnalyzeScope = async () => {
-    if (!rawScope.trim()) return
-    
+    if (!rawScope.trim() || !selectedProjectId) return
+
     setIsAnalyzing(true)
-    
-    // Simulate API call
-    setTimeout(() => {
-      setSuggestions(mockScopeSuggestions)
+    setErrorMessage(null)
+
+    try {
+      const response = await fetch(`/api/v1/projects/${selectedProjectId}/scope/parse`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
+        body: JSON.stringify({ rawScope })
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Failed to analyze scope' }))
+        throw new Error(err.error || 'Failed to analyze scope')
+      }
+
+      const data = await response.json()
+      setSuggestions(data.data)
+      setAcceptedSuggestions({})
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to analyze scope')
+    } finally {
       setIsAnalyzing(false)
-    }, 2000)
+    }
   }
 
   const handleAcceptSuggestion = (category: string, index: number) => {
@@ -150,6 +197,38 @@ export default function ProjectWorkspace() {
     setStructuredScope(scope)
   }
 
+  const handleGenerateReport = async () => {
+    if (!selectedProjectId) return
+
+    try {
+      setIsGeneratingReport(true)
+      const response = await fetch(`/api/v1/projects/${selectedProjectId}/report/generate`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
+        body: JSON.stringify({
+          format: 'json',
+          includeXBRL: true,
+          sections: ['executive_summary', 'environmental', 'social', 'governance']
+        })
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Failed to generate report' }))
+        throw new Error(err.error || 'Failed to generate report')
+      }
+
+      await loadMvpData(selectedProjectId)
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to generate report')
+    } finally {
+      setIsGeneratingReport(false)
+    }
+  }
+
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.9) return "text-green-600"
     if (confidence >= 0.7) return "text-yellow-600"
@@ -163,7 +242,8 @@ export default function ProjectWorkspace() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Header */}
       <header className="border-b bg-white dark:bg-slate-800">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -183,10 +263,17 @@ export default function ProjectWorkspace() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
+            <Link href="/help/project-interface">
+              <Button variant="outline" size="sm">
+                Help
+              </Button>
+            </Link>
+            <Link href="/settings">
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -197,11 +284,21 @@ export default function ProjectWorkspace() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">TechCorp ESG Assessment 2024</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{selectedProject?.name || "Project Workspace"}</h1>
               <p className="text-slate-600 dark:text-slate-400">Define project scope and analyze regulatory requirements</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="outline">DRAFT</Badge>
+            <div className="flex items-center gap-4">
+              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                <SelectTrigger className="w-[280px] bg-white">
+                  <SelectValue placeholder="Select project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Badge variant="outline">{selectedProject?.status || "DRAFT"}</Badge>
               <Button onClick={handleSaveScope} disabled={!suggestions}>
                 <Save className="h-4 w-4 mr-2" />
                 Save Scope
@@ -209,6 +306,84 @@ export default function ProjectWorkspace() {
             </div>
           </div>
         </div>
+
+        {errorMessage && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertDescription className="text-red-700">{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>MVP Progress Snapshot</span>
+              <Button size="sm" variant="outline" onClick={() => selectedProjectId && loadMvpData(selectedProjectId)} disabled={!selectedProjectId || isLoadingMvpData}>
+                {isLoadingMvpData ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
+              </Button>
+            </CardTitle>
+            <CardDescription>Quick view of readiness and report generation for the selected project.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-4">
+            <div className="rounded-md border p-4">
+              <div className="text-sm text-slate-500">Overall readiness</div>
+              <div className="text-2xl font-bold">{readinessSummary?.overallScore ?? 0}%</div>
+              <p className="text-xs text-slate-500 mt-1">{readinessSummary?.standards?.length ?? 0} standards evaluated</p>
+            </div>
+            <div className="rounded-md border p-4">
+              <div className="text-sm text-slate-500">Reports generated</div>
+              <div className="text-2xl font-bold">{readinessSummary?.generatedReports ?? 0}</div>
+              <p className="text-xs text-slate-500 mt-1">Latest: {latestReport ? `v${latestReport.version}` : 'none yet'}</p>
+            </div>
+            <div className="rounded-md border p-4 space-y-2">
+              <Button className="w-full" onClick={handleGenerateReport} disabled={!selectedProjectId || isGeneratingReport}>
+                {isGeneratingReport ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}Generate Report
+              </Button>
+              {latestReport && (
+                <a href={`/api/v1/reports/${latestReport.id}/download/json`}>
+                  <Button className="w-full" variant="outline">Download Latest JSON</Button>
+                </a>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Standards Readiness Breakdown</CardTitle>
+            <CardDescription>Track framework-by-framework coverage and focus remediation work on missing requirements.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {readinessSummary?.standards?.length ? (
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-3">
+                  {readinessSummary.standards.map((item: any) => (
+                    <div key={item.standard} className="rounded-md border p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium">{item.standard}</span>
+                        <Badge variant={item.status === 'READY' ? 'default' : 'secondary'}>{item.status}</Badge>
+                      </div>
+                      <div className="text-sm text-slate-600">Coverage: {item.coverageScore}%</div>
+                      <div className="text-xs text-slate-500 mt-1">Missing: {item.missingRequirements.length}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {readinessSummary.nextSteps?.length > 0 && (
+                  <div className="rounded-md border p-3 bg-amber-50/60">
+                    <h4 className="font-medium mb-2">Priority next steps</h4>
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
+                      {readinessSummary.nextSteps.slice(0, 5).map((step: any, idx: number) => (
+                        <li key={`${step.standard}-${idx}`}>{step.standard}: {step.missing.join(', ') || 'Complete remaining disclosures'}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">No readiness data yet. Start by analyzing scope and capturing framework assessments.</p>
+            )}
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="scope" className="space-y-6">
           <TabsList className="grid w-full grid-cols-11">
@@ -258,7 +433,7 @@ export default function ProjectWorkspace() {
 
                   <Button 
                     onClick={handleAnalyzeScope} 
-                    disabled={!rawScope.trim() || isAnalyzing}
+                    disabled={!rawScope.trim() || isAnalyzing || !selectedProjectId}
                     className="w-full"
                   >
                     {isAnalyzing ? (
@@ -2226,6 +2401,7 @@ export default function ProjectWorkspace() {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

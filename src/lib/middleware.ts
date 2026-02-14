@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken, extractTokenFromHeader } from './auth-utils'
+import { verifyToken, extractTokenFromHeader, extractTokenFromCookie } from './auth-utils'
 import { UserRole } from '@prisma/client'
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -13,7 +13,8 @@ export interface AuthenticatedRequest extends NextRequest {
 export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextResponse> | NextResponse) {
   return async (req: NextRequest): Promise<NextResponse> => {
     try {
-      const token = extractTokenFromHeader(req.headers.get('authorization') || undefined)
+      const token = extractTokenFromHeader(req.headers.get('authorization') || undefined) ||
+        extractTokenFromCookie(req.headers.get('cookie'))
       
       if (!token) {
         return NextResponse.json(

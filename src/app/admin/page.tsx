@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -171,11 +171,12 @@ const getActionIcon = (action: string) => {
 }
 
 export default function AdminDashboard() {
-  const { user, token } = useAuth()
+  const { user, token, isAuthenticated, isAdmin, isLoading: authLoading } = useAuth()
   const [users, setUsers] = useState(mockUsers)
   const [auditLogs, setAuditLogs] = useState(mockAuditLogs)
   const [systemStats, setSystemStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false)
   const [newUser, setNewUser] = useState({
@@ -186,20 +187,31 @@ export default function AdminDashboard() {
   })
 
   // Fetch system stats on component mount
-  React.useEffect(() => {
-    fetchSystemStats()
-  }, [])
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && isAdmin) {
+      fetchSystemStats()
+    }
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      setLoading(false)
+    }
+  }, [authLoading, isAuthenticated, isAdmin])
 
   const fetchSystemStats = async () => {
     try {
+      const headers: Record<string, string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
       const response = await fetch('/api/v1/admin/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include',
+        headers
       })
       if (response.ok) {
         const data = await response.json()
         setSystemStats(data.stats)
+        setErrorMessage(null)
+      } else if (response.status !== 401 && response.status !== 403) {
+        const err = await response.json().catch(() => ({ error: 'Failed to fetch system stats' }))
+        setErrorMessage(err.error || 'Failed to fetch system stats')
       }
     } catch (error) {
       console.error('Error fetching system stats:', error)
@@ -215,12 +227,13 @@ export default function AdminDashboard() {
 
   const handleCreateUser = async () => {
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
       const response = await fetch('/api/v1/admin/users', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers,
         body: JSON.stringify({
           ...newUser,
           password: 'TempPassword123!' // In production, this should be generated and emailed
@@ -310,6 +323,14 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">System Administration</h1>
           <p className="text-slate-600 dark:text-slate-400">Manage users, monitor system activity, and configure platform settings</p>
         </div>
+
+        {errorMessage && (
+          <Alert className="border-red-200 bg-red-50">
+            <AlertDescription className="text-red-700">
+              {errorMessage}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">

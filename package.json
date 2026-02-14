@@ -14,7 +14,13 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "db:start": "docker compose up -d postgres",
+    "db:stop": "docker compose stop postgres",
+    "db:setup:local": "prisma db push && tsx seed-admin.ts",
+    "bootstrap:windows": "powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1",
+    "bootstrap:windows:skipdev": "powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 -SkipDev",
+    "standards:build-ingestion": "node scripts/standards/build-ingestion-from-csv.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

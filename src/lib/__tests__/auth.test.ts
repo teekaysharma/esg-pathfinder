@@ -1,6 +1,12 @@
-import { hashPassword, verifyPassword, generateToken, verifyToken, extractTokenFromHeader } from '../auth'
+import jwt from 'jsonwebtoken'
+import {
+  hashPassword,
+  verifyPassword,
+  generateToken,
+  verifyToken,
+  extractTokenFromHeader,
+} from '../auth-utils'
 
-// Mock environment variables
 process.env.JWT_SECRET = 'test-super-secret-jwt-key-for-testing-only-32-chars'
 
 describe('Authentication Utilities', () => {
@@ -8,7 +14,7 @@ describe('Authentication Utilities', () => {
     it('should hash a password successfully', async () => {
       const password = 'testPassword123!'
       const hashedPassword = await hashPassword(password)
-      
+
       expect(hashedPassword).toBeDefined()
       expect(hashedPassword).not.toBe(password)
       expect(hashedPassword.length).toBeGreaterThan(50)
@@ -18,7 +24,7 @@ describe('Authentication Utilities', () => {
       const password = 'testPassword123!'
       const hash1 = await hashPassword(password)
       const hash2 = await hashPassword(password)
-      
+
       expect(hash1).not.toBe(hash2)
     })
   })
@@ -27,7 +33,7 @@ describe('Authentication Utilities', () => {
     it('should verify correct password', async () => {
       const password = 'testPassword123!'
       const hashedPassword = await hashPassword(password)
-      
+
       const isValid = await verifyPassword(password, hashedPassword)
       expect(isValid).toBe(true)
     })
@@ -36,7 +42,7 @@ describe('Authentication Utilities', () => {
       const password = 'testPassword123!'
       const wrongPassword = 'wrongPassword456!'
       const hashedPassword = await hashPassword(password)
-      
+
       const isValid = await verifyPassword(wrongPassword, hashedPassword)
       expect(isValid).toBe(false)
     })
@@ -47,14 +53,14 @@ describe('Authentication Utilities', () => {
       const payload = {
         userId: 'test-user-id',
         email: 'test@example.com',
-        role: 'VIEWER'
+        role: 'VIEWER' as const,
       }
-      
+
       const token = generateToken(payload)
-      
+
       expect(token).toBeDefined()
       expect(typeof token).toBe('string')
-      expect(token.split('.')).toHaveLength(3) // JWT has 3 parts
+      expect(token.split('.')).toHaveLength(3)
     })
   })
 
@@ -63,43 +69,32 @@ describe('Authentication Utilities', () => {
       const payload = {
         userId: 'test-user-id',
         email: 'test@example.com',
-        role: 'VIEWER'
+        role: 'VIEWER' as const,
       }
-      
+
       const token = generateToken(payload)
       const decoded = verifyToken(token)
-      
-      expect(decoded).toEqual(payload)
+
+      expect(decoded).toMatchObject(payload)
     })
 
     it('should reject invalid token', () => {
       const invalidToken = 'invalid.token.here'
       const decoded = verifyToken(invalidToken)
-      
-      expect(decoded).toBeNull)
+
+      expect(decoded).toBeNull()
     })
 
     it('should reject expired token', () => {
-      // Create a token that expires immediately
-      const originalExpire = process.env.JWT_EXPIRES_IN
-      process.env.JWT_EXPIRES_IN = '0ms'
-      
       const payload = {
         userId: 'test-user-id',
         email: 'test@example.com',
-        role: 'VIEWER'
+        role: 'VIEWER' as const,
       }
-      
-      const token = generateToken(payload)
-      
-      // Wait a bit to ensure expiration
-      setTimeout(() => {
-        const decoded = verifyToken(token)
-        expect(decoded).toBeNull)
-        
-        // Restore original expire time
-        process.env.JWT_EXPIRES_IN = originalExpire
-      }, 10)
+
+      const expiredToken = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: -1 })
+      const decoded = verifyToken(expiredToken)
+      expect(decoded).toBeNull()
     })
   })
 
@@ -107,26 +102,26 @@ describe('Authentication Utilities', () => {
     it('should extract token from valid Bearer header', () => {
       const token = 'test.jwt.token'
       const header = `Bearer ${token}`
-      
+
       const extracted = extractTokenFromHeader(header)
       expect(extracted).toBe(token)
     })
 
     it('should return null for invalid header format', () => {
       const header = 'InvalidFormat token'
-      
+
       const extracted = extractTokenFromHeader(header)
       expect(extracted).toBeNull()
     })
 
     it('should return null for missing header', () => {
       const extracted = extractTokenFromHeader(undefined)
-      expect(extracted).toBeNull)
+      expect(extracted).toBeNull()
     })
 
     it('should return null for empty header', () => {
       const extracted = extractTokenFromHeader('')
-      expect(extracted).toBeNull)
+      expect(extracted).toBeNull()
     })
   })
 })

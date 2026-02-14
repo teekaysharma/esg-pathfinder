@@ -37,9 +37,9 @@ export const commonValidations = {
   // Safe text with length limits
   safeText: (min: number = 1, max: number = 255) => 
     z.string()
+      .trim()
       .min(min, `Text must be at least ${min} character${min > 1 ? 's' : ''}`)
-      .max(max, `Text must not exceed ${max} characters`)
-      .transform(sanitizeInput),
+      .max(max, `Text must not exceed ${max} characters`),
 
   // Email validation
   email: z.string()
@@ -135,66 +135,65 @@ export const commonValidations = {
 }
 
 // Specific validation schemas for ESG data
+const esgCategoryValidation = z.enum(['Environmental', 'Social', 'Governance'], {
+  errorMap: () => ({ message: 'Must be one of: Environmental, Social, Governance' })
+})
+
+const esgSubcategoryValidation = z.string()
+  .min(1, 'Subcategory is required')
+  .max(100, 'Subcategory too long')
+  .transform(sanitizeInput)
+
+const esgMetricNameValidation = z.string()
+  .min(1, 'Metric name is required')
+  .max(200, 'Metric name too long')
+  .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Metric name contains invalid characters')
+  .transform(sanitizeInput)
+
+const esgMetricCodeValidation = z.string()
+  .min(1, 'Metric code is required')
+  .max(50, 'Metric code too long')
+  .regex(/^[A-Z0-9_]+$/, 'Metric code must contain only uppercase letters, numbers, and underscores')
+  .transform(sanitizeInput)
+
+const esgUnitValidation = z.string()
+  .min(1, 'Unit is required')
+  .max(50, 'Unit too long')
+  .transform(sanitizeInput)
+
+const esgPeriodValidation = z.enum(['Annual', 'Quarterly', 'Monthly'], {
+  errorMap: () => ({ message: 'Must be one of: Annual, Quarterly, Monthly' })
+})
+
+const esgValidationStatusValidation = z.enum(['PENDING', 'VALIDATED', 'REJECTED', 'REVIEW'], {
+  errorMap: () => ({ message: 'Must be one of: PENDING, VALIDATED, REJECTED, REVIEW' })
+})
+
+const esgConfidenceScoreValidation = z.number()
+  .min(0, 'Confidence score must be between 0 and 1')
+  .max(1, 'Confidence score must be between 0 and 1')
+
 export const esgValidations = {
-  // ESG category validation
-  category: z.enum(['Environmental', 'Social', 'Governance'], {
-    errorMap: () => ({ message: 'Must be one of: Environmental, Social, Governance' })
-  }),
-
-  // ESG subcategory validation
-  subcategory: z.string()
-    .min(1, 'Subcategory is required')
-    .max(100, 'Subcategory too long')
-    .transform(sanitizeInput),
-
-  // Metric validation
-  metricName: z.string()
-    .min(1, 'Metric name is required')
-    .max(200, 'Metric name too long')
-    .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Metric name contains invalid characters')
-    .transform(sanitizeInput),
-
-  // Metric code validation (like GRI_302_1)
-  metricCode: z.string()
-    .min(1, 'Metric code is required')
-    .max(50, 'Metric code too long')
-    .regex(/^[A-Z0-9_]+$/, 'Metric code must contain only uppercase letters, numbers, and underscores')
-    .transform(sanitizeInput),
-
-  // Unit validation
-  unit: z.string()
-    .min(1, 'Unit is required')
-    .max(50, 'Unit too long')
-    .transform(sanitizeInput),
-
-  // Period validation
-  period: z.enum(['Annual', 'Quarterly', 'Monthly'], {
-    errorMap: () => ({ message: 'Must be one of: Annual, Quarterly, Monthly' })
-  }),
-
-  // Validation status
-  validationStatus: z.enum(['PENDING', 'VALIDATED', 'REJECTED', 'REVIEW'], {
-    errorMap: () => ({ message: 'Must be one of: PENDING, VALIDATED, REJECTED, REVIEW' })
-  }),
-
-  // Confidence score validation
-  confidenceScore: z.number()
-    .min(0, 'Confidence score must be between 0 and 1')
-    .max(1, 'Confidence score must be between 0 and 1'),
-
-  // ESG data point validation
+  category: esgCategoryValidation,
+  subcategory: esgSubcategoryValidation,
+  metricName: esgMetricNameValidation,
+  metricCode: esgMetricCodeValidation,
+  unit: esgUnitValidation,
+  period: esgPeriodValidation,
+  validationStatus: esgValidationStatusValidation,
+  confidenceScore: esgConfidenceScoreValidation,
   dataPoint: z.object({
-    category: esgValidations.category,
-    subcategory: esgValidations.subcategory,
-    metricName: esgValidations.metricName,
-    metricCode: esgValidations.metricCode,
+    category: esgCategoryValidation,
+    subcategory: esgSubcategoryValidation,
+    metricName: esgMetricNameValidation,
+    metricCode: esgMetricCodeValidation,
     value: z.number().optional(),
-    unit: esgValidations.unit.optional(),
+    unit: esgUnitValidation.optional(),
     year: commonValidations.year.optional(),
-    period: esgValidations.period.optional(),
+    period: esgPeriodValidation.optional(),
     dataSource: commonValidations.safeText(1, 500).optional(),
-    confidence: esgValidations.confidenceScore.optional(),
-    validationStatus: esgValidations.validationStatus.default('PENDING'),
+    confidence: esgConfidenceScoreValidation.optional(),
+    validationStatus: esgValidationStatusValidation.default('PENDING'),
     metadata: z.any().optional(),
   }),
 }
