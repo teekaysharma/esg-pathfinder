@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import ZAI from "z-ai-web-dev-sdk"
 
 interface MaterialityRequest {
@@ -26,10 +27,10 @@ interface MaterialityResponse {
   recommendations: string[]
 }
 
-export async function POST(
-  request: NextRequest,
+const POSTHandler = async (
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
     const body = await request.json() as MaterialityRequest
@@ -278,3 +279,5 @@ function createFallbackMaterialityResponse(sector: string): MaterialityResponse 
     ]
   }
 }
+
+export const POST = withAuth(POSTHandler)

@@ -10,6 +10,7 @@ A comprehensive, production-ready ESG (Environmental, Social, and Governance) co
 - **🌍 GRI** - Global Reporting Initiative Standards
 - **🏢 SASB** - Sustainability Accounting Standards Board
 - **📊 IFRS** - International Financial Reporting Standards (S1-S5)
+- **💎 RJC** - Responsible Jewellery Council Code of Practices & Chain-of-Custody
 
 ### 🤖 **AI-Powered Assessment**
 - **Z-AI SDK Integration** for intelligent compliance analysis
@@ -117,6 +118,7 @@ docker run -p 8501:8501 esg-pathfinder-streamlit
 - **GRI**: Universal Standards, Topic Standards, Sector Standards
 - **SASB**: Industry-specific standards and metrics
 - **IFRS**: S1-S5 Sustainability Standards
+- **RJC**: Responsible sourcing, chain-of-custody, labor/human-rights, and environmental compliance
 
 ### **📤 Data Collection**
 - **Automated Data Validation** with quality scoring
@@ -139,67 +141,121 @@ docker run -p 8501:8501 esg-pathfinder-streamlit
 ## 🔧 Development Setup
 
 ### **Prerequisites**
-- Node.js 18+ and npm/yarn
-- Python 3.9+ and pip
+- Node.js 18+ and npm
+- Docker (for local PostgreSQL)
 - Git
 
-### **Local Development**
+### **Local MVP Development (localhost + PostgreSQL)**
 ```bash
-# Clone the repository
+# Clone and install
 git clone https://github.com/teekaysharma/esg-pathfinder.git
 cd esg-pathfinder
-
-# Install Node.js dependencies
 npm install
 
-# Install Python dependencies (for Streamlit)
-pip install -r requirements.txt
-
-# Set up environment variables
+# Configure environment
 cp .env.example .env.local
+cp .env.example .env
 
-# Initialize database
-npm run db:push
+# Start local PostgreSQL
+npm run db:start
 
-# Create admin user
-npx tsx seed-admin.ts
+# Push schema and seed admin + default organization
+npm run db:setup:local
 
-# Start development server
+# Start app
 npm run dev
 ```
 
-### **Environment Variables**
-```env
-# Database
-DATABASE_URL="file:./dev.db"
+### **Windows Local Bootstrap (No Docker, PostgreSQL Installed Locally)**
+If you already have PostgreSQL and npm on Windows, use the included bootstrap package from this branch:
 
-# 🔐 CRITICAL: Authentication (REQUIRED)
-JWT_SECRET="your-super-secure-jwt-secret-key-minimum-32-characters-long"
-JWT_EXPIRES_IN="24h"
+1. Download this branch as ZIP from GitHub and extract it.
+2. Open PowerShell in the extracted project root.
+3. Run one of:
+```powershell
+# easiest: double-click start.bat or run it from cmd
+.\start.bat
 
-# NextAuth Configuration
-NEXTAUTH_SECRET="your-nextauth-secret-key"
-NEXTAUTH_URL="http://localhost:3000"
-
-# AI Services
-Z_AI_API_KEY="your-z-ai-api-key"
-Z_AI_BASE_URL="https://api.z-ai.dev"
-
-# Redis Configuration (for caching and rate limiting)
-REDIS_URL="redis://localhost:6379"
-
-# Security Configuration
-NODE_ENV="development"
-CORS_ORIGIN="http://localhost:3000"
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Logging Configuration
-LOG_LEVEL="info"
-LOG_FILE_PATH="./logs/app.log"
+# or run npm bootstrap directly
+npm run bootstrap:windows
 ```
 
-⚠️ **Important**: `JWT_SECRET` is now required for security. Generate a secure random key (minimum 32 characters).
+This startup tool will:
+- Verify `node`, `npm`, and `psql` are available
+- Create/update `.env` and `.env.local` (preserves existing secrets unless forced)
+- Provision PostgreSQL role/database (`esg_user` / `esg_pathfinder` by default) using your local PostgreSQL server (no Docker)
+- Install npm dependencies
+- Run Prisma schema push + local seed
+- Start the app (`npm run dev`)
+
+Optional flags (PowerShell):
+```powershell
+# Skip launching dev server after bootstrap
+# (also supported in starter: .\start.bat --skip-dev)
+npm run bootstrap:windows:skipdev
+
+# Or run script directly with custom DB values
+powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 `
+  -DbHost localhost -DbPort 5432 -DbName esg_pathfinder -DbUser esg_user -DbPassword esg_password -AdminUser postgres
+
+# Force-rewrite env values (including secrets)
+powershell -ExecutionPolicy Bypass -File scripts/windows/bootstrap-local.ps1 -ForceRewriteEnv
+```
+
+If your postgres admin account requires a password, set `PGPASSWORD` before running the script.
+
+### **Environment Variables**
+Use `.env.example` as baseline. Minimum required values:
+```env
+DATABASE_URL="postgresql://esg_user:esg_password@localhost:5432/esg_pathfinder?schema=public"
+JWT_SECRET="<at-least-32-characters>"
+JWT_EXPIRES_IN="24h"
+NEXTAUTH_SECRET="<at-least-32-characters>"
+NEXTAUTH_URL="http://localhost:5000"
+NODE_ENV="development"
+PORT="5000"
+CORS_ORIGIN="http://localhost:5000,http://localhost:3000"
+```
+
+### **Local MVP Login**
+After running `npm run db:setup:local`:
+- Email: `admin@esgpathfinder.com`
+- Password: `Admin123!`
+
+⚠️ **Important**: `JWT_SECRET` must be strong (minimum 32 characters).
+
+
+### **Project Interface Help (Step-by-Step)**
+
+For a complete guided workflow through the interface (from login to reporting and standards ingestion), use:
+
+- In-app help page: `/help/project-interface`
+- Full doc: `docs/project-interface-help.md`
+
+### **Standards Readiness & Data Collection APIs**
+
+The platform now includes project-level readiness and collection endpoints to ensure all framework requirements can be prepared before final report generation:
+
+- `GET /api/v1/projects/{id}/standards/readiness`
+  - Returns coverage score per standard (`TCFD`, `CSRD`, `ISSB`, `IFRS`, `GRI`, `SASB`, `RJC`, `VSME`)
+  - Lists missing requirements and recommended next input steps
+
+- `GET /api/v1/projects/{id}/sasb/assessment`
+- `POST /api/v1/projects/{id}/sasb/assessment`
+  - Stores/updates SASB industry mapping, metrics, disclosures, benchmark inputs, and gap analysis
+
+- `GET /api/v1/projects/{id}/rjc/assessment`
+- `POST /api/v1/projects/{id}/rjc/assessment`
+  - Captures RJC controls for governance/ethics, chain-of-custody, human-rights/labor, environmental performance, due diligence, and corrective actions
+
+These endpoints complement existing routes for:
+- TCFD: `/api/v1/projects/{id}/tcfd/assessment`
+- CSRD: `/api/v1/projects/{id}/csrd/assessment`
+- ISSB: `/api/v1/projects/{id}/issb/assessment`
+- GRI: `/api/v1/projects/{id}/gri/assessment`, `/api/v1/projects/{id}/gri/metrics`
+- IFRS metrics: `/api/v1/projects/{id}/ifrs/metrics`
+- Shared data capture: `/api/v1/projects/{id}/data-points`, `/api/v1/projects/{id}/compliance-checks`, `/api/v1/projects/{id}/workflows`
+- RJC: `/api/v1/projects/{id}/rjc/assessment`
 
 ## 📚 Documentation
 
@@ -208,6 +264,9 @@ LOG_FILE_PATH="./logs/app.log"
 - **[🧪 Testing Guide](./docs/testing.md)** - Testing framework and coverage
 - **[🚀 Deployment Guide](./DEPLOYMENT.md)** - Platform-specific deployment instructions
 - **[📚 API Documentation](./docs/api.md)** - Complete API reference
+- **[🧭 Project Interface Help](./docs/project-interface-help.md)** - End-to-end step-by-step UI workflow
+- **[🧠 Standards Registry Contract](./docs/standards-registry-contract.md)** - Ingestion schema and admin API for framework knowledge
+- **[🧾 Standards CSV Templates](./templates/standards-ingestion/README.md)** - Offline template workflow for licensed/protected framework sources
 - **[🏢 Framework Guides](./docs/frameworks/)** - Individual framework documentation
 - **[🤝 Contributing Guide](./CONTRIBUTING.md)** - Development and contribution guidelines
 

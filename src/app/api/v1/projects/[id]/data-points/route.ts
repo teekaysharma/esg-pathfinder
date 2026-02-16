@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { withAuth, AuthenticatedRequest } from "@/lib/middleware"
 import { z } from "zod"
 
 const dataPointSchema = z.object({
@@ -48,10 +49,10 @@ interface DataPointResponse {
   updatedAt: string
 }
 
-export async function POST(
-  request: NextRequest,
+const POSTHandler = async (
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
     const body = await request.json() as DataPointRequest
@@ -180,10 +181,10 @@ export async function POST(
   }
 }
 
-export async function GET(
-  request: NextRequest,
+const GETHandler = async (
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const projectId = params.id
     const { searchParams } = new URL(request.url)
@@ -503,3 +504,6 @@ async function generateDataPointsFromStandards(project: any, standards: string[]
 
   return dataPoints
 }
+
+export const POST = withAuth(POSTHandler)
+export const GET = withAuth(GETHandler)

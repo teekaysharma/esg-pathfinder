@@ -6,6 +6,15 @@ export const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-at-least-32
 export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h'
 export const SALT_ROUNDS = 12
 
+const isProductionRuntime =
+  process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build'
+
+if (isProductionRuntime || process.env.NODE_ENV === 'test') {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET must be set to a strong value (minimum 32 characters)')
+  }
+}
+
 export interface JWTPayload {
   userId: string
   email: string
@@ -37,4 +46,16 @@ export function extractTokenFromHeader(authHeader: string | undefined): string |
     return null
   }
   return authHeader.substring(7)
+}
+
+export function extractTokenFromCookie(cookieHeader: string | null | undefined): string | null {
+  if (!cookieHeader) return null
+
+  const tokenCookie = cookieHeader
+    .split(';')
+    .map(part => part.trim())
+    .find(part => part.startsWith('auth_token='))
+
+  if (!tokenCookie) return null
+  return decodeURIComponent(tokenCookie.split('=')[1] || '')
 }

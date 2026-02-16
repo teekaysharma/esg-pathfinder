@@ -517,3 +517,161 @@ enum Priority {
   HIGH
   CRITICAL
 }
+enum StandardsVersionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ValidationSeverity {
+  ERROR
+  WARNING
+}
+
+enum AssertionType {
+  existenceAssertion
+  valueAssertion
+}
+
+enum DimensionType {
+  NONE
+  EXPLICIT
+  TYPED
+}
+
+enum StandardsIngestionStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+model StandardFramework {
+  id          String   @id @default(cuid())
+  code        String   @unique // GRI, ISSB, ESRS, etc.
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions      StandardVersion[]
+  ingestionJobs StandardsIngestionJob[]
+
+  @@map("standard_frameworks")
+}
+
+model StandardVersion {
+  id              String                 @id @default(cuid())
+  frameworkId     String
+  versionTag      String
+  sourceUrl       String
+  effectiveFrom   DateTime?
+  packageChecksum String
+  notes           String?
+  status          StandardsVersionStatus @default(DRAFT)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  framework       StandardFramework      @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  disclosures     StandardDisclosure[]
+  datapoints      StandardDatapoint[]
+  validationRules StandardValidationRule[]
+  crosswalkFrom   StandardCrosswalk[]    @relation("crosswalkFrom")
+  crosswalkTo     StandardCrosswalk[]    @relation("crosswalkTo")
+  ingestionJobs   StandardsIngestionJob[]
+
+  @@unique([frameworkId, versionTag])
+  @@map("standard_versions")
+}
+
+model StandardDisclosure {
+  id                String   @id @default(cuid())
+  versionId         String
+  disclosureId      String
+  title             String
+  level             Int
+  mandatoryFor      String[]
+  sectorSpecific    Boolean  @default(false)
+  parentDisclosureId String?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  version StandardVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@unique([versionId, disclosureId])
+  @@map("standard_disclosures")
+}
+
+model StandardDatapoint {
+  id            String        @id @default(cuid())
+  versionId     String
+  code          String
+  label         String
+  dataType      String
+  unit          String?
+  allowedValues String[]
+  disclosureId  String?
+  dimensionType DimensionType @default(NONE)
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  version StandardVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@unique([versionId, code])
+  @@map("standard_datapoints")
+}
+
+model StandardValidationRule {
+  id            String             @id @default(cuid())
+  versionId     String
+  ruleCode      String
+  severity      ValidationSeverity
+  assertionType AssertionType
+  expression    String
+  disclosureId  String?
+  metadata      Json?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  version StandardVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@unique([versionId, ruleCode])
+  @@map("standard_validation_rules")
+}
+
+model StandardCrosswalk {
+  id               String   @id @default(cuid())
+  fromVersionId    String
+  toVersionId      String
+  fromDisclosureId String
+  toDisclosureId   String
+  mappingType      String
+  confidence       Float?
+  rationale        String?
+  createdAt        DateTime @default(now())
+
+  fromVersion StandardVersion @relation("crosswalkFrom", fields: [fromVersionId], references: [id], onDelete: Cascade)
+  toVersion   StandardVersion @relation("crosswalkTo", fields: [toVersionId], references: [id], onDelete: Cascade)
+
+  @@map("standard_crosswalks")
+}
+
+model StandardsIngestionJob {
+  id              String                   @id @default(cuid())
+  frameworkId     String
+  versionId       String
+  createdBy       String
+  status          StandardsIngestionStatus @default(PENDING)
+  payloadChecksum String
+  summaryJson     Json?
+  errorJson       Json?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  framework StandardFramework @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  version   StandardVersion   @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@map("standards_ingestion_jobs")
+}
