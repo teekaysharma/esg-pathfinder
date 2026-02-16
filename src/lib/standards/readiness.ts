@@ -1,6 +1,6 @@
 import { Project, TCFDAssessment, CSRDAassessment, ISSBAssessment, GRIAssessment, SASBAssessment } from '@prisma/client'
 
-export type StandardName = 'TCFD' | 'CSRD' | 'ISSB' | 'IFRS' | 'GRI' | 'SASB' | 'RJC'
+export type StandardName = 'TCFD' | 'CSRD' | 'ISSB' | 'IFRS' | 'GRI' | 'SASB' | 'RJC' | 'VSME'
 
 export interface StandardReadiness {
   standard: StandardName
@@ -85,6 +85,15 @@ export function buildStandardsReadiness(input: BuildInput): StandardReadiness[] 
     { key: 'Corrective action workflow/evidence', ok: input.workflowCount > 0 && input.evidenceCount > 0 }
   ]
 
+
+  const vsmeReq = [
+    { key: 'Basic module narrative', ok: input.dataPointCodes.some(c => c.startsWith('VSME_B_')) },
+    { key: 'Comprehensive module narrative', ok: input.dataPointCodes.some(c => c.startsWith('VSME_C_')) },
+    { key: 'VSME disclosures tracked', ok: input.dataPointCodes.some(c => c.startsWith('VSME_')) },
+    { key: 'VSME compliance workflow', ok: input.complianceFrameworks.includes('VSME') || input.workflowCount > 0 },
+    { key: 'Supporting evidence', ok: input.evidenceCount > 0 }
+  ]
+
   const ifrsReq = [
     { key: 'IFRS S1/S2 readiness', ok: !!input.issb?.ifrsS1 && !!input.issb?.ifrsS2 },
     { key: 'IFRS metric datapoints', ok: input.dataPointCodes.some(c => c.startsWith('IFRS_')) },
@@ -100,7 +109,8 @@ export function buildStandardsReadiness(input: BuildInput): StandardReadiness[] 
     { standard: 'IFRS', req: ifrsReq, inputs: ['issb_assessment', 'ifrs_metrics', 'compliance_checks'], supported: true },
     { standard: 'GRI', req: griReq, inputs: ['gri_assessment', 'gri_metrics', 'disclosures'], supported: true },
     { standard: 'SASB', req: sasbReq, inputs: ['sasb_assessment', 'sasb_metrics', 'disclosures'], supported: true },
-    { standard: 'RJC', req: rjcReq, inputs: ['rjc_assessment', 'compliance_checks', 'esg_data_points', 'workflows', 'evidence'], supported: true }
+    { standard: 'RJC', req: rjcReq, inputs: ['rjc_assessment', 'compliance_checks', 'esg_data_points', 'workflows', 'evidence'], supported: true },
+    { standard: 'VSME', req: vsmeReq, inputs: ['vsme_disclosures', 'esg_data_points', 'compliance_checks', 'workflows', 'evidence'], supported: true }
   ]
 
   return standards.map(({ standard, req, inputs, supported }) => {

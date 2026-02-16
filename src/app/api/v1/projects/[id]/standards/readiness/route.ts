@@ -35,7 +35,8 @@ const GETHandler = async (
         { standard: 'ISSB', coverageScore: project.scopeStructuredJson ? 60 : 10, status: project.scopeStructuredJson ? 'IN_PROGRESS' : 'NOT_STARTED', missingRequirements: ['IFRS S1 policy', 'IFRS S2 climate metrics'] },
         { standard: 'GRI', coverageScore: project.scopeStructuredJson ? 75 : 20, status: project.scopeStructuredJson ? 'IN_PROGRESS' : 'NOT_STARTED', missingRequirements: ['GRI 2 disclosures'] },
         { standard: 'SASB', coverageScore: 40, status: 'NOT_STARTED', missingRequirements: ['Industry mapping', 'SASB metric capture'] },
-        { standard: 'RJC', coverageScore: 35, status: 'NOT_STARTED', missingRequirements: ['Chain-of-custody controls'] }
+        { standard: 'RJC', coverageScore: 35, status: 'NOT_STARTED', missingRequirements: ['Chain-of-custody controls'] },
+        { standard: 'VSME', coverageScore: project.scopeStructuredJson ? 55 : 15, status: project.scopeStructuredJson ? 'IN_PROGRESS' : 'NOT_STARTED', missingRequirements: ['VSME basic module narrative', 'VSME climate/workforce datapoints'] }
       ]
 
       const overallScore = Math.round(standards.reduce((acc, item) => acc + item.coverageScore, 0) / standards.length)

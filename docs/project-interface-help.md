@@ -35,6 +35,7 @@ Complete each enabled standard module in sequence:
 - GRI assessment
 - SASB assessment
 - RJC assessment (if applicable)
+- VSME assessment (for voluntary SME reporting)
 
 For each module:
 

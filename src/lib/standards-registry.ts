@@ -1,7 +1,7 @@
 import { createHash } from 'crypto'
 import { z } from 'zod'
 
-export const frameworkCodeSchema = z.enum(['GRI', 'ISSB', 'ESRS', 'SASB', 'TCFD', 'RJC'])
+export const frameworkCodeSchema = z.enum(['GRI', 'ISSB', 'ESRS', 'SASB', 'TCFD', 'RJC', 'VSME'])
 
 export const createIngestionSchema = z.object({
   frameworkCode: frameworkCodeSchema,

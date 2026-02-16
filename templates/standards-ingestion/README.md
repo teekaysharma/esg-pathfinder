@@ -22,3 +22,7 @@ Then POST the generated JSON to:
 - `POST /api/v1/admin/standards/ingestions`
 
 For full field definitions see `docs/standards-registry-contract.md`.
+
+
+### Framework code notes
+Use `frameworkCode` values supported by ingestion schema: `GRI`, `ISSB`, `ESRS`, `SASB`, `TCFD`, `RJC`, `VSME`.
