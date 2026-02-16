@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
-const ALLOWED_FRAMEWORKS = new Set(['GRI', 'ISSB', 'ESRS', 'SASB', 'TCFD', 'RJC'])
+const ALLOWED_FRAMEWORKS = new Set(['GRI', 'ISSB', 'ESRS', 'SASB', 'TCFD', 'RJC', 'VSME'])
 const REQUIRED_FILES = ['framework.csv', 'disclosures.csv', 'datapoints.csv', 'validation-rules.csv']
 
 function parseArgs(argv) {

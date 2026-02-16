@@ -39,7 +39,7 @@ export const helpWorkflowSteps: HelpWorkflowStep[] = [
   },
   {
     title: 'Run framework assessments',
-    description: 'Complete applicable TCFD, CSRD, ISSB/IFRS, GRI, SASB, and RJC modules.',
+    description: 'Complete applicable TCFD, CSRD, ISSB/IFRS, GRI, SASB, RJC, and VSME modules.',
     outcome: 'Gap visibility and prioritized remediation actions.',
     icon: ClipboardCheck,
   },
@@ -72,7 +72,7 @@ export const helpDetailedPlaybook: HelpPlaybookStep[] = [
   },
   {
     key: 'step-3',
-    title: 'Step 3 — Framework module completion',
+    title: 'Step 3 — Framework module completion (incl. VSME where applicable)',
     doItems: ['Complete applicable framework assessments.', 'Record qualitative notes and quantitative datapoints.', 'Review generated gaps and recommendations.'],
     verify: 'Each enabled framework has current assessment outputs.',
   },

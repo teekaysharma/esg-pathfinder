@@ -5,7 +5,7 @@ This document defines the first implementation contract for framework knowledge 
 ## Data model (Prisma)
 
 Core entities:
-- `StandardFramework` (e.g., GRI, ISSB, ESRS)
+- `StandardFramework` (e.g., GRI, ISSB, ESRS, VSME)
 - `StandardVersion` (version tag, source URL, effective date, checksum, status)
 - `StandardDisclosure` (disclosure IDs and requirement levels)
 - `StandardDatapoint` (typed datapoint dictionary)
@@ -77,3 +77,8 @@ npm run standards:build-ingestion -- \
 ```
 
 3. Submit `standards-ingestion.json` to `POST /api/v1/admin/standards/ingestions`.
+
+
+## Maintenance cadence
+- Re-ingest framework packages when official updates are released (recommended quarterly check; mandatory after each official VSME/ESRS publication update).
+- Keep `versionTag` aligned to source publication date/version string for auditability.

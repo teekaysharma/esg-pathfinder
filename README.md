@@ -237,7 +237,7 @@ For a complete guided workflow through the interface (from login to reporting an
 The platform now includes project-level readiness and collection endpoints to ensure all framework requirements can be prepared before final report generation:
 
 - `GET /api/v1/projects/{id}/standards/readiness`
-  - Returns coverage score per standard (`TCFD`, `CSRD`, `ISSB`, `IFRS`, `GRI`, `SASB`, `RJC`)
+  - Returns coverage score per standard (`TCFD`, `CSRD`, `ISSB`, `IFRS`, `GRI`, `SASB`, `RJC`, `VSME`)
   - Lists missing requirements and recommended next input steps
 
 - `GET /api/v1/projects/{id}/sasb/assessment`
