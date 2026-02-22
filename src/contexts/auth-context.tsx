@@ -125,7 +125,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null)
       setToken(null)
-      document.cookie = 'auth_token=; Max-Age=0; path=/'
     }
   }
 

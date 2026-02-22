@@ -10,8 +10,10 @@ export interface AuthenticatedRequest extends NextRequest {
   }
 }
 
-export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextResponse> | NextResponse) {
-  return async (req: NextRequest): Promise<NextResponse> => {
+export function withAuth<TArgs extends unknown[]>(
+  handler: (req: AuthenticatedRequest, ...args: TArgs) => Promise<NextResponse> | NextResponse
+) {
+  return async (req: NextRequest, ...args: TArgs): Promise<NextResponse> => {
     try {
       const token = extractTokenFromHeader(req.headers.get('authorization') || undefined) ||
         extractTokenFromCookie(req.headers.get('cookie'))
@@ -35,7 +37,7 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
       const authenticatedReq = req as AuthenticatedRequest
       authenticatedReq.user = payload
 
-      return handler(authenticatedReq)
+      return handler(authenticatedReq, ...args)
     } catch (error) {
       console.error('Auth middleware error:', error)
       return NextResponse.json(
@@ -47,10 +49,10 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
 }
 
 export function withRole(roles: UserRole[]) {
-  return function <T extends (req: AuthenticatedRequest) => Promise<NextResponse> | NextResponse>(
-    handler: T
+  return function <TArgs extends unknown[]>(
+    handler: (req: AuthenticatedRequest, ...args: TArgs) => Promise<NextResponse> | NextResponse
   ) {
-    return withAuth(async (req: AuthenticatedRequest): Promise<NextResponse> => {
+    return withAuth(async (req: AuthenticatedRequest, ...args: TArgs): Promise<NextResponse> => {
       if (!req.user) {
         return NextResponse.json(
           { error: 'User not authenticated' },
@@ -65,7 +67,7 @@ export function withRole(roles: UserRole[]) {
         )
       }
 
-      return handler(req)
+      return handler(req, ...args)
     })
   }
 }
